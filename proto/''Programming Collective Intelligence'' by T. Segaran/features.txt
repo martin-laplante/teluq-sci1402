@@ -1,0 +1,21 @@
+['scientists', 'first', 'earth', 'years', 'time', 'cells']
+(np.float64(5.578632238277862), 'Advanced optical imaging reveals hidden activity in blood immune cells')
+(np.float64(3.895273790447836), 'In search of life beyond our solar system: Atmosphere detected on a habitable-zone rocky world')
+(np.float64(3.6765489764348986), "What's carving active gullies on Mars? It's not water")
+(np.float64(3.4061863884607146), "Japan's Hayabusa2 achieves first-ever laser ranging experiment with an asteroid")
+(np.float64(3.3247710090914113), "New clues about how space travel may affect women's health")
+
+['university', 'study', 'research', 'published', 'researchers', 'journal']
+(np.float64(3.5899244832117057), 'Bear baiting in England became more common following Norman invasion, research reveals')
+(np.float64(3.2813819895286884), 'AI use mirrors student schedules in study of 77,000 online learners')
+(np.float64(3.227800011584296), 'In ant nervous systems, gene expression may drive rescue behavior')
+(np.float64(3.1421147449827447), 'More than 100 years of data suggest men are growing taller and heavier at twice the rate of women')
+(np.float64(2.9020648248083383), 'Even ancient bacteria possessed intercellular communication structures like humans today, study finds')
+
+['materials', 'quantum', 'light', 'researchers', 'energy', 'systems']
+(np.float64(4.438741191437343), 'Molecular antennae make light-activated molecular switches more sensitive')
+(np.float64(4.42385656209687), 'Hollow-core fiber platform could help different quantum technologies connect')
+(np.float64(4.122182114835489), 'AI streamlines search for new ceramics that generate electricity')
+(np.float64(4.077156772551857), 'Sensitive measurements uncover dual superconducting states in atom-thin NbSe₂ and TaS₂')
+(np.float64(4.073739655219181), 'Ultrathin silicon structures can tune mid-IR light in billionths of a second')
+
