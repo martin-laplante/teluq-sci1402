@@ -127,6 +127,11 @@ ipython_config.py
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
 
+# Quatro
+#   Fichiers générés pour HTML local
+doc/outil_regex - Brouillon/outil_regex.rapport.fix_files/
+doc/outil_regex - Brouillon/outil_regex.rapport_files/
+
 # Celery stuff
 celerybeat-schedule
 celerybeat.pid
