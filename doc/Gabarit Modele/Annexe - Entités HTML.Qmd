@@ -1,0 +1,6 @@
+###### Liste des entités HTML utilisées
+|Symbole |  Code      | Nom officiel       |Position Unicode|
+|--------|------------|--------------------|----------------|
+|&reg;   |&amp;reg;   |REGISTERED TRADEMARK|            174 |
+|&egrave;|&amp;egrave;|EGRAVE              |            232 |
+|&eacute;|&amp;eacute;|EACUTE              |            233 |
