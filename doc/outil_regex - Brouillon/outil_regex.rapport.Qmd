@@ -1,0 +1,5 @@
+﻿# Nombre de caractères par positions
+
+| Nombre    | Pos.    | Repr. | Unicode | Commentaires |
+|:---------:|:-------:|:-----:|:--------|:-------------|
+

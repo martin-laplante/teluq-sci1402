@@ -1,0 +1,58 @@
+﻿# Nombre de caractères par positions
+
+
+<!-- re.compile(r'[\[\]^=>|&%<\t\r\n"()~\x7F\xA0`‘ʻΩ‘½ʻθ`\u00B2\u2019]+') -->
+
+
+| Nombre    | Pos.    | Repr. | Unicode | Commentaires           |
+|:---------:|:-------:|:-----:|:--------|:-----------------------|
+|         8 |       9 | TAB   |         | Bruit                  |
+|      1912 |      13 | CR    |         | Bruit                  |
+|   1610685 |      32 | SP    |         | Séparateur             |
+|       548 |      33 | !     |         | Ponctuation            |
+|     26856 |      34 | "     |         | Bruit                  |
+|        13 |      35 | #     |         | Acceptable             |
+|         2 |      36 | $     |         | Acceptable             |
+|        39 |      37 | %     |         | Bruit                  |
+|       394 |      38 | &     |         | Bruit                  |
+|     19516 |      39 | '     |         | Acceptable             |
+|      6512 |      40 | (     |         | Bruit                  |
+|      6505 |      41 | )     |         | Bruit                  |
+|        32 |      42 | *     |         | Acceptable             |
+|       280 |      43 | +     |         | Acceptable, Numérique  |
+|     82008 |      44 | ,     |         | Numérique, Ponctuation |
+|     28911 |      45 | -     |         | Acceptable, Numérique  |
+|     75937 |      46 | .     |         | Numérique, Ponctuation |
+|      1103 |      47 | /     |         | Acceptable             |
+|    126682 |   48-57 | 0-9   |         | Chiffres base 10       |
+|      3505 |      58 | :     |         | Ponctuation            |
+|       143 |      59 | ;     |         | Ponctuation            |
+|        95 |      60 | <     |         | Bruit                  |
+|        27 |      61 | =     |         | Bruit                  |
+|        97 |      62 | >     |         | Bruit                  |
+|      3791 |      63 | ?     |         | Ponctuation            |
+|         9 |      64 | @     |         | Acceptable             |
+|    327153 |   65-90 | A-Z   |         | Alphabet MAJUSCULE     |
+|        21 |      91 | [     |         | Bruit                  |
+|        21 |      93 | ]     |         | Bruit                  |
+|         3 |      94 | ^     |         | Bruit                  |
+|         7 |      95 | _     |         | Bruit                  |
+|         2 |      96 | `     |         | Bruit                  |
+|   7619210 |  97-122 | a-z   |         | Alphabet minuscule     |
+|         0 |     123 | \{    |         | Bruit                  |
+|       919 |     124 | |     |         | Bruit                  |
+|         0 |     125 | \}    |         | Bruit                  |
+|         6 |     126 | ~     |         | Bruit                  |
+|         1 |     127 | DEL   |         | Bruit                  |
+|        66 |     160 | NBSP  | u+00A0  | Bruit                  |
+|         1 |     178 | ²     | u+00B2  | Bruit                  |
+|         2 |     189 | ½     | u+00BD  | Bruit                  |
+|       198 | 192-380 | À-ż   | C0-1ff  | Alphabet accentué      |
+|         2 |     699 | ʻ     | u+02BB  | Bruit                  |
+|         1 |     937 | Ω     | u+03A9  | Bruit                  |
+|         2 |     952 | θ     | u+03B8  | Bruit                  |
+|        28 |    8211 | –     | u+2013  | Bruit                  |
+|        24 |    8212 | —     | u+2014  | Bruit                  |
+|         1 |    8216 | ‘     | u+2018  | Bruit                  |
+|        95 |    8217 | ’     | u+2019  | Bruit                  |
+|       145 |   65533 | �     | u+FFFD  | Alphabet inconnu       |
