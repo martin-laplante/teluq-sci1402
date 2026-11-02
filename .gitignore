@@ -129,8 +129,10 @@ __pypackages__/
 
 # Quatro
 #   Fichiers générés pour HTML local
-doc/outil_regex - Brouillon/outil_regex.rapport.fix_files/
 doc/outil_regex - Brouillon/outil_regex.rapport_files/
+doc/outil_regex - Brouillon/outil_regex.rapport.fix_files/
+doc/outil_regex - Brouillon/outil_regex.rapport.html
+doc/outil_regex - Brouillon/outil_regex.rapport.fix.html
 
 # Celery stuff
 celerybeat-schedule
