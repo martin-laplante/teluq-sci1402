@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>sci1402-tn1-descriptionprojet_martinlaplante</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="SCI1402-TN1-DescriptionProjet_MartinLaplante_files/libs/clipboard/clipboard.min.js"></script>
+<script src="SCI1402-TN1-DescriptionProjet_MartinLaplante_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="SCI1402-TN1-DescriptionProjet_MartinLaplante_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="SCI1402-TN1-DescriptionProjet_MartinLaplante_files/libs/quarto-html/popper.min.js"></script>
+<script src="SCI1402-TN1-DescriptionProjet_MartinLaplante_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="SCI1402-TN1-DescriptionProjet_MartinLaplante_files/libs/quarto-html/anchor.min.js"></script>
+<link href="SCI1402-TN1-DescriptionProjet_MartinLaplante_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="SCI1402-TN1-DescriptionProjet_MartinLaplante_files/libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="SCI1402-TN1-DescriptionProjet_MartinLaplante_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="SCI1402-TN1-DescriptionProjet_MartinLaplante_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="SCI1402-TN1-DescriptionProjet_MartinLaplante_files/libs/bootstrap/bootstrap-215b371544c282197b31c8aa00ce3677.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+
+
+
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<p>Ce que l’IA et la science des données a de noble et intéressant à offrir pour la recherche en général, c’est de pouvoir faire émerger ce qu’on ne voit pas immédiatement dans les données, ce qui peut permettre une catégorisation objective. On pense, entre autres, aux possibilités qu’offre l’apprentissage non supervisé qui permet l’extraction de caractéristiques émergentes d’un corpus de texte. Par exemple, l’analyse d’un groupe de publications d’un site de la NASA, le “Astronomy Picture of the Day” https://apod.nasa.gov/apod/astropix.html. Ce site opère depuis 1995 et offre à chaque jour une image en lien avec l’astronomie ainsi qu’un texte explicatif.</p>
+<p>Ce projet propose de télécharger le contenu texte de ces articles et utiliser la compréhension du langage naturel et la factorisation en matrices non négatives pour faire sortir les données cachées.</p>
+</section>
+<section id="objectifs" class="level1">
+<h1>Objectifs</h1>
+<section id="objectifs-principaux" class="level2">
+<h2 class="anchored" data-anchor-id="objectifs-principaux">Objectifs principaux</h2>
+<p>Produire un ensemble de caractéristiques qui soit représentatif de ce que la NASA a accompli en astronomie durant les 30 dernières années.</p>
+<p>Concevoir un système suffisament ouvert pour permettre un controle, (ex. ajustement d’une fenetre glissante) sur la sortie obtenue.</p>
+</section>
+<section id="objectifs-secondaires" class="level2">
+<h2 class="anchored" data-anchor-id="objectifs-secondaires">Objectifs secondaires</h2>
+<p>Explorer les visualisations possibles avec les données extraites. La NASA offre un index de ses archives qui suit un modèle chronologique simple et ne montre que les dix dernières années. Un regroupement comme un index terminologique, sorte de table des matières pourrait s’avérer intéressant.</p>
+<p>D’autre part, la programmation orientée objet qu’offre le langage Python est suffisamment avancée pour permettre un développement en composantes réutilisables. De ce fait, en généralisant suffisamment, d’autre type de corpus pourraient être traité avec ce système, moyennant une réécriture de certaines parties.</p>
+</section>
+</section>
+<section id="le-pipeline-des-données" class="level1">
+<h1>Le pipeline des données</h1>
+<p>Voici le pipeline de données proposé</p>
+<section id="description-des-composantes-à-développer" class="level2">
+<h2 class="anchored" data-anchor-id="description-des-composantes-à-développer">Description des composantes à développer</h2>
+<ol type="1">
+<li>Table d’articles
+<ul>
+<li>C’est le fichier CSV retrouvé sur Kaggle</li>
+</ul></li>
+<li>Contrôle fenêtre glissante
+<ul>
+<li>Bien que le ficher peut être traité en un seul bloc, l’ajout d’une fenêtre glissante va permettre de localiser dans le temps des caractéristiques plus spécifiques.</li>
+</ul></li>
+<li>Compréhension Langage Naturel (NLU)
+<ul>
+<li>Une fois le bloc de textes sélectionné, on filtre le contenu pour ne garder que les termes significatifs et leur fréquence respective que l’on placera dans une matrice MxN ou M le nombre d’articles et N le nombre de termes significatifs.</li>
+</ul></li>
+<li>Factorisation en matrices non négative (NMF)
+<ul>
+<li>On utilise ici un module spécialisé Python, NumPy qui permet la création de grandes matrices et leurs opérationsé</li>
+</ul></li>
+<li>Consolidation
+<ul>
+<li>Une fois les matrices W et H obtenues, une extraction des caractéristiques va s’effectuer et produire un résultat pour une visualiation</li>
+</ul></li>
+<li>Visualisation terminologique
+<ul>
+<li>Sortie finale un document HTML.</li>
+</ul></li>
+</ol>
+</section>
+<section id="méthodologie" class="level2">
+<h2 class="anchored" data-anchor-id="méthodologie">Méthodologie</h2>
+<p>Le developpement va suivre un mode Waterfall, afin de répondre au mode de livraison dans le cours, a savoir</p>
+<ol type="1">
+<li>Ce document, qui montre les bases du projet, sa motivation, ses objectifs</li>
+<li>Une version de mi parcours</li>
+<li>Une livraison fronctionnelle</li>
+<li>Rapport final du projet.</li>
+</ol>
+<p>Une &lt;<work breakdown="" structure="">&gt; est disponible en appendice</work></p>
+</section>
+<section id="chaîne-doutils" class="level2">
+<h2 class="anchored" data-anchor-id="chaîne-doutils">Chaîne d’outils</h2>
+<section id="langage-de-programmation" class="level3">
+<h3 class="anchored" data-anchor-id="langage-de-programmation">Langage de programmation</h3>
+<p>Le langage Python est utilisé car il permet:</p>
+<ol type="1">
+<li>Prototypage rapide; Un minimum de code peut être écrit pour valider ou rejeter une idée en cours de chemin</li>
+<li>Le langage est à sa 3e version majeure et bénéficie d’une très grande communauté d’utilisateurs, ce qui permet d’obtenir des réponses adéquate à la quasi totalité des problèmes rencontrés pendant le développement</li>
+<li>Une large comunauté d’utilisateurs signifie également qu’on a accès à un large éventail de librairies, par exemple NumPy dédiée aux opérations numériques complexes (Matrices, Statistiques, etc)</li>
+</ol>
+</section>
+<section id="documentation-électronique" class="level3">
+<h3 class="anchored" data-anchor-id="documentation-électronique">Documentation électronique</h3>
+<p>Jupyter est utilisé pour fournir un cahier de note virtuel, fonctionant avec Python.</p>
+<p>Grace à Jupyter, un minimum de code de balise peut etre utilisé pour formatter un document facile à lire et pouvant comprendre des exemples de codes Python avec les résultats rééels intégrés.</p>
+</section>
+<section id="environnement-de-développement" class="level3">
+<h3 class="anchored" data-anchor-id="environnement-de-développement">Environnement de développement</h3>
+<p>Durant le certificat, l’utilisation de Google Colab s’est montré extrement utile pour le développement, en particulier pour : 1. Accélération matérielle gratuite, fortement utile pour les scripts ayant un gros volume de données. 2. Les librairies comme Pandas et NumPy sont déjà prêtes à l’emploi 3. Support intégré Jupyter Notebook</p>
+</section>
+</section>
+<section id="rôles" class="level2">
+<h2 class="anchored" data-anchor-id="rôles">Rôles</h2>
+<section id="développement" class="level3">
+<h3 class="anchored" data-anchor-id="développement">Développement</h3>
+<p>Tout le code et les livrabres reliés seront produit uniquement par l’étudiant en charge du projet.</p>
+</section>
+<section id="aq" class="level3">
+<h3 class="anchored" data-anchor-id="aq">AQ</h3>
+<p>L’assurance qualité sera effectué par les revisions et évaluation du personnel enseignant TÉLUQ par l’entremise du système de dépot électronique</p>
+</section>
+</section>
+<section id="données" class="level2">
+<h2 class="anchored" data-anchor-id="données">Données</h2>
+<section id="source" class="level3">
+<h3 class="anchored" data-anchor-id="source">Source</h3>
+<p>Sur Kaggle un auteur offre une base de presque tous les articles publiés par APOD. Sous la forme d’un tableau CSV on y trouve la partie “Explanation” de chaque article mis en ligne.</p>
+</section>
+<section id="dictionnaire-terminologique" class="level3">
+<h3 class="anchored" data-anchor-id="dictionnaire-terminologique">Dictionnaire terminologique</h3>
+<p>Une liste de termes utilisé est jointe en annexe.</p>
+</section>
+</section>
+</section>
+<section id="conception-architecturale" class="level1">
+<h1>Conception architecturale</h1>
+<section id="approche-sélectionnée" class="level2">
+<h2 class="anchored" data-anchor-id="approche-sélectionnée">Approche sélectionnée</h2>
+</section>
+</section>
+<section id="conception-détaillée" class="level1">
+<h1>Conception détaillée</h1>
+<section id="algorithmes" class="level2">
+<h2 class="anchored" data-anchor-id="algorithmes">Algorithmes</h2>
+</section>
+</section>
+<section id="rédaction-des-tests" class="level1">
+<h1>Rédaction des tests</h1>
+</section>
+<section id="codage" class="level1">
+<h1>Codage</h1>
+<section id="gestion-des-versions" class="level2">
+<h2 class="anchored" data-anchor-id="gestion-des-versions">Gestion des versions</h2>
+</section>
+<section id="construction" class="level2">
+<h2 class="anchored" data-anchor-id="construction">Construction</h2>
+</section>
+</section>
+<section id="rédaction-du-manuel-de-lutilisateur" class="level1">
+<h1>Rédaction du manuel de l’utilisateur</h1>
+</section>
+<section id="homologation" class="level1">
+<h1>Homologation</h1>
+</section>
+<section id="essais-bêta" class="level1">
+<h1>Essais bêta</h1>
+</section>
+<section id="publication" class="level1">
+<h1>Publication</h1>
+</section>
+<section id="corrections-de-bogues" class="level1">
+<h1>Corrections de bogues</h1>
+</section>
+<section id="fin-du-soutien" class="level1">
+<h1>Fin du soutien</h1>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
