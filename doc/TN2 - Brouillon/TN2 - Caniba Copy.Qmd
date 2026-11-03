@@ -1,0 +1,61 @@
+
+
+
+
+
+<!--
+  3. Modélisation et méthode
+  Décris la chaîne réellement envisagée ou implémentée : préparation des textes, construction de la matrice articles-termes, NMF, extraction des thèmes et génération des résultats. Justifie les principales décisions et mentionne les solutions encore à comparer.
+  -->
+  
+
+## Extraction des thèmes
+
+## Génération des résultats
+
+## 
+
+# Observations 
+
+<!--
+
+  4. État d'avancement et résultats préliminaires
+  
+  Montre des résultats concrets : 
+  statistiques sur les données, 
+  exemple de matrice, 
+  premiers thèmes extraits ou aperçu du HTML. 
+  Explique ce que ces résultats montrent et 
+  ce qu'ils ne permettent pas encore de conclure.
+
+  -->
+
+
+
+# Développement à effectuer
+<!--
+  5. Évaluation, limites et suite des travaux
+
+  Explique comment tu évalueras la qualité des thèmes, quels problèmes restent à résoudre, quels changements sont nécessaires et comment tu comptes terminer le projet selon l'échéancier prévu.
+  
+  -->
+
+Dans ce qui suit, il sera question de ce qui reste à developper.
+
+## Carence dans les métriques
+
+Regrouper les poids de chaque catégorie pour chaque mot permet de créer une visualisation de base.  Comme vu précdement prendre les trois mots significatifs de chaque catégorie et lister les articles avec chaque poid nous donne un classement qui augmente en précision aparente, sans jamais permettre d'évaluer objectivement si une amélioration a vraiment eu lieu.   
+
+### Distance avec la matrice reconstruite
+
+Dans la litérature (needrefhere) on parle de matrice reconstruite.  La premiere intuition est que la distance algébrique entre la matrice M et sa reconstruction W.H tends vers zero lorsque un N optimal est atteint.  Il n'en est rien.  En realité plus N est grand, plus la distance diminue.
+
+### La mesure de parcimonie (sparcity)
+
+Apres quelques recherches, il semblerait que cette métrique fournit une meilleure évaluation de la qualite.
+
+
+
+
+
+

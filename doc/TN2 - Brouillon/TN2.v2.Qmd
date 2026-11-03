@@ -1,0 +1,527 @@
+---
+format:
+  docx:
+    reference-doc: TN2-custom-reference.docx
+language:
+  title-block-author-single: "Par"
+  title-block-published: "Travail remis le"
+title: Travail Noté 2 - Rapport mi-parcours
+subtitle: TÉLUQ - SCI 1402 - Session automne 2026
+date: today
+date-format: "YYYY-MM-DD"
+author: Martin Laplante (24121010)
+jupyter: python3
+bibliography: tn2.bib
+csl: apa-fr-provost.csl
+---
+
+
+
+# Introduction
+
+Depuis 1995, la NASA met en ligne une photo différente à chaque jour sur un des aspects touchant l'astronomie. La plupart des images sont des photos prises par les différents télescopes mis en service. Dans ce site web intitulé [Astronomy Picture of the Day](https://science.nasa.gov/apod/), chaque image est accompagnée d'un court texte anglais (entre 200 et 500 mots).
+
+L'objectif de ce document est de présenter la modélisation d'une catégorisation non supervisée de ces textes en suivant les étapes clés d'un projet science de données. Ce travail noté va montrer l’état d’avancement de l'analyse et comment procéder par la suite pour remplir les objectifs du projet.
+
+# Présentation
+
+<!-- 
+  1. Problématique, objectifs et portée
+
+  Rappelle:
+	la question de recherche, 
+	les objectifs et 
+	le périmètre retenu. 
+  Distingue 
+	ce qui constitue le produit minimal à livrer des améliorations facultatives, par exemple l'adaptation à d'autres corpus.
+  -->
+
+Est-il possible de départager une série d'ensembles d'éléments, en catégories utiles sans entrainement préalable ?
+
+C'est ce que le projet tentera de répondre. On voudrait pouvoir faire émerger ce qu'on ne voit pas immédiatement dans les données, afin de produire une catégorisation utilitaire. Le produit de ce projet sera un script Python permettant d'extraire les termes d'un corpus de texte pour bâtir un index terminologique sur des articles qui lui sont fournis.
+
+La méthodologie utilisée :
+
+  1. Utiliser un corpus des publications mise en ligne sur un des sites web de la NASA, le [Astronomy Picture of the Day](https://science.nasa.gov/apod/) pour en extraire des regroupements dans le but de constituer un index thématique, utilisable comme page d'un site web. La réalisation de cet objectif va permettre, en particulier :
+
+     (a) La mise en application des concepts de nettoyage des données, de leur normalisation ainsi que la résilience face aux erreurs dans leur contenu.
+     
+     (b) D'évaluer en quoi la compréhension des langages naturels (NLU) va augmenter la qualité des résultats.
+     
+     (c) L'exploitation de la méthode de factorisation non négative (NMF), comprendre son utilité et ses limites.
+   
+  1. Chaque extraction de regroupements effectués devra offrir une liste d'indicateurs clés :
+   
+     (a) Le volume traité, en nombre d'articles, de mots ou toute autre quantité permettant d'apprécier l'effet d'un paramètre de contrôle, de normalisation ou de nettoyage.
+   
+     (b) Une mesure globale de la qualité de la factorisation. La séparation en catégories peut donner des résultats variant de médiocre à optimal. Le nombre de regroupements demandés, Le nombre d'articles fournis ainsi que le niveau de "bruit" dans le corpus ont chacun un effet sur la catégorisation. On veut une mesure objective qui va permettre de diminuer ces effets.
+   
+     (c) Une méthode de regroupements des résultats de la factorisation.  La génération d'une page Web comportant un index thématique sera fournie.
+   
+ # Traitement du fichier des articles APOD
+
+<!--
+  2. Données et préparation
+
+  Présente le jeu de données effectivement utilisé. 
+  Indique 
+    la source,                (x) checked
+	le nombre d'articles,     (x) checked
+	les dates couvertes,      (x) checked
+	les champs disponibles,   (x) checked
+	les valeurs manquantes et (x) checked
+	les anomalies constatées. (x) checked
+	
+  Explique comment tu as décidé de traiter chaque problème significatif.
+  -->
+
+Dans ce qui suit, il sera question de la gestion et préparation du volume de données du projet.  
+
+## Source
+
+Le corpus des articles est contenu dans un fichier sur Kaggle, déposé [ici](https://www.kaggle.com/datasets/ahsanneural/nasa-astronomy-picture-of-the-day-1995-2026/code) par son auteur Muhammad Ahsan. Les données couvrent plus de 30 ans de publications, de juin 1995 à février 2026.
+
+### Structure du fichier
+
+Le format du fichier est le `CSV` dont la première ligne fournie la définition des colonnes suivantes :
+
+| Nom               | Format       | Commentaires                         |
+|-------------------|--------------|--------------------------------------|
+| `date`            | `YYYY-MM-DD` | La date de publication               |
+| `explanation`     | Texte        | Le texte de l'article.               |
+| `hdurl`           | URL          | Adresse URL de la ressource affichée |
+| `media_type`      | Enumeration  | `image`, `video` ou `other`          |
+| `service_version` | V~n~         | Une seule valeur, "V1", le numéro de version de l'API offert par la NASA |
+| `title`           | Texte        | Le titre de l'article                |
+| `url`             | URL          | Adresse URL de la ressource affichée |
+| `copyright`       | Texte        | Droits d'auteurs si aplicables       |
+
+
+## Limites
+
+- Le contenu du fichier CSV comporte 22 201 lignes pour 11 186 enregistrements
+- Pour un enregistrement donné, le texte contenu dans le champ `explanation` peut être parsemé de retour de lignes ce qui complique son chargement en mémoire.
+- Chaque enregistrement correspond à l'article publié à la date trouvée dans le champ éponyme.
+- Le champ `explanation` est vide à quelques reprises.
+- Il y a des sauts dans les dates.
+- Il y a des caractères nuisibles comme la position 0x7F (D'EL)
+
+## Sélection des données
+
+- Bien que la NASA offre une API pour récupérer les articles à la pièce, Seul le fichier CSV `nasa_apod_complete.csv` sera utilisé.
+- Les champs `title`, `date`, `explanation` et `url` seront utilisés.
+- Les articles seront analysés en fenêtre glissante, définie selon une date de départ et de fin.
+
+## Traitement des anomalies
+
+### Doublons
+
+- Afin de détecter la présence de doublons, un calcul de clé unique (ex. : MD5) sera fait sur chaque contenu du texte. 
+- La recherche de clés identique nous permettra de rapporter ces doublons.
+- Les cas de doublons seront vérifiés à la pièce pour s'assurer que le traitement du fichier soit correct
+- Un seul article sera considéré et les autres copies seront ignorées.
+
+### Dates manquantes
+
+- Les dates manquantes sont normalement attribuées à l'absence de publication pour ladite journée.
+- Plusieurs raisons naturelles peuvent les expliquer. Elles seront néanmoins rapportées afin qu'une vérification puisse être effectuée.
+- Le calcul de dimension de fenêtre glissante devra donc en tenir compte lors du rapport.
+
+### Articles sans contenus
+
+- Si un article est sans contenu, on doit le rapporter, pour que vérification soit faite.
+- S'il est établi que la publication n'a en effet aucun contenu, il sera exclu de l'analyse au même titre qu'une date manquante, ou de copies superflues
+
+
+
+# Fonctionnement
+
+<!--
+  3. Modélisation et méthode
+
+  Décris la chaîne réellement envisagée ou implémentée : 
+    préparation des textes, 
+	construction de la matrice articles-termes, 
+	NMF, 
+	extraction des thèmes et 
+	génération des résultats. 
+  Justifie les principales décisions et mentionne les solutions encore à comparer.
+  -->
+
+```{python}
+#| eval: true
+#| echo: false
+#| output: false
+
+import collections
+import os
+import re
+import sys
+
+import numpy as np
+from   sklearn.decomposition import NMF
+
+p = r'nasa_apod_complete.csv'
+encoding='utf-8-sig'
+i_start = 0
+n_art = 500
+n_catego = 15
+nb_iter_max = 2000  # L'algorithme envoie des avertissements si les valeurs
+                    # n'ont pas pu converger suffisament au bout de 200 itérations.
+compute_word_stats = False
+
+line_sep = re.compile(r'\r?\n(?=199[56789]-\d\d-\d\d|20[012]\d-\d\d-\d\d)')
+line_parser = re.compile( r'(?P<date>(199[5-9]|20[0-2]\d)-[01]\d-[0-3]\d),'+
+                          r'(?P<explanation>.*?),'+
+                          r'(?P<hdurl>https?:.*?(\?rel=0|\.(wmv|tiff?|png|mpe?g|mp4|mov|jpe?g|gif) ?)|),'+
+                          r'(?P<media_type>image|other|video),'+
+                          r'(?P<service_version>v\d),'+
+                          r'(?P<title>.*?),'+
+                          r'(?P<url>https?:.*?|//player\.vimeo.*?|//www\.youtube.*?|),'+
+                          r'(?P<copyright>.*)',re.DOTALL|re.I)
+disruptive_chars = re.compile(r'[\x00-\x09\x0b\x0c\x0e-\x1f\x7f\xa0]')
+word_chars = r''.join([
+    r'-a-zA-Z',       # Normal ASCII, includes "-" (dash)
+    r'\u00C0-\u00D6', # Latin-1 Supplement (langues européennes)
+    r'\u00D8-\u00F6',
+    r'\u00F8-\u00FF',
+    r'\u0100-\u024F', # Latin Extended A et B
+  ])
+re_findall_english_words = re.compile(r"["+word_chars+r"]+", re.I)
+
+# @title Fonction utilitaires
+
+def build_M( word_count_by_article, word_to_pos, use_tf_idf = False, stop_words = [], tf_per_article={}, idf_by_word={}):
+  M = []
+  for artno, word_count in word_count_by_article.items():
+    m = [0]*len(word_to_pos)
+    for word, count in word_count.items():
+      pos = word_to_pos[word]
+      if word not in stop_words:
+        if use_tf_idf:
+          score = tf_per_article[artno][word]*idf_by_word[word]
+          m[pos]=score
+        else:
+          m[pos] = count
+    M.append(m)
+  return M
+
+def display_topics(H,W,words,titles,nb):
+  for i in range(np.shape(H)[0]):
+    catego = [itm[1] for itm in list(reversed(sorted((H[i,j],words[j]) for j in range(np.shape(H)[1]))))[:nb]]
+    print("Catégorie #%2d: %s"%(i,'/'.join(catego)))
+    articles = []
+    c = i
+    for k in range(np.shape(W)[0]): # Correction : on parcourt les lignes de W (les articles)
+      if W[k,c] !=0: # On vérifie que l'article k appartient à la catégorie c (poids significatif)
+        articles.append((W[k,c],k,titles[k]))
+
+    all_articles = list(reversed(sorted(articles)))[:nb]
+    print(*['  - '+ repr(itm[2]) for itm in all_articles], sep='\n')
+
+text = ''
+data = b''
+messages = collections.defaultdict(list)
+records = []
+all_lines = []
+heading = []
+mo = None
+old = 0
+mtchs = None
+nb_empty_explanations = 0
+nb_empty_titles = 0
+nb_days = None
+count_by_media_type = collections.Counter()
+contributors = collections.Counter()
+explanation_by_md5 = collections.defaultdict(list)
+word_to_pos = {}
+titles = []
+word_count_by_article = collections.defaultdict(lambda:collections.defaultdict(int))
+words = []
+monograms = collections.defaultdict(int)
+M = None
+tf_per_article = collections.defaultdict(lambda: collections.defaultdict(float))
+documents_per_word = collections.defaultdict(list)
+
+if not os.path.exists(p):
+    print("Le fichier %s n'existe pas"%(repr(p),))
+    sys.exit()
+```
+
+## Préparation du texte
+
+```{python}
+#@title Chargement complet en mémoire.
+try:
+  with open(p, 'rb') as inbnry:
+    data = inbnry.read()
+    print("Lecture de %s:\n  %8d octets (%.3f MB)"%(repr(p),
+		len(data), len(data)/1048576))
+  text = data.decode(encoding)
+  print("  %8d lignes textes"%(text.count('\n'),))
+except Exception as e:
+  print(p,e,sep='\n\t',file=sys.stderr)
+  
+all_lines = line_sep.split(text)
+print("  %8d enregistrements à extraire."%(len(all_lines)-1,))
+
+heading = all_lines[0].split(',')
+print("  %8d colonnes (champs/enregistrements):"%(len(heading),))
+print("           %s"%('"'+'", "'.join(heading[:4])+'"',))
+print("           %s"%('"'+'", "'.join(heading[4:])+'"',))
+```
+
+Pour parer au problème des enregistrements sur plusieurs lignes, on va utiliser une ou plusieurs expressions régulières. Cela demande une connaissance approfondie de sa syntaxe, de ses limites afin de distinguer un saut de ligne d'un changement d'enregistrement. Ensuite chaque enregistrement doit pouvoir être séparé dans ses champs appropriés.
+
+```{python}
+for each_line in all_lines[1:]:
+    mo = line_parser.match(each_line)
+    if mo:
+        records.append(mo.groupdict())
+print("  %8d enregistrements chargés"%(len(records),))
+```
+
+## Construction de la matrice article-termes
+
+La factorisation NMF se base sur une matrice dont chaque rangée est associée à un et un seul article. Dans chaque rangée, on place une valeur numérique qui est le poids d'un terme retrouvé dans un article pour un mot donné. Si le terme ne figure pas dans l'article, on trouvera un zéro. Dans le cas particulier de la NMF, toutes les valeurs sont positives. Dans ce qui suit, on se sert du décompte du mot en guise de poids.
+
+```python
+def build_M( word_count_by_article, word_to_pos):
+  """Construit M a partir d'un ensemble de mot."""
+  M = []
+  for artno, word_count in word_count_by_article.items():
+    m = [0]*len(word_to_pos)
+    for word, count in word_count.items():
+      pos = word_to_pos[word]
+      m[pos] = count
+    M.append(m)
+  return M
+```
+
+On bâtit les structures de données nécessaires :
+
+```{python}
+for artno, record in enumerate(records[i_start:i_start+n_art]):
+  titles.append(record['title'])
+  _ = word_count_by_article[artno] # Calls default.
+  all_article_words = re_findall_english_words.findall(record['explanation'])
+  for word in all_article_words:
+    word = word.lower()
+    word_count_by_article[artno][word]+=1
+    if word not in words:
+      words.append(word)
+
+for pos,word in enumerate(words):
+  word_to_pos[word]=pos
+
+M = build_M( word_count_by_article, word_to_pos)
+print("  M a %5d rangées de %5d mots"%(len(M),len(M[0])))
+
+```
+
+## NMF
+
+On utilise la fonction sklearn.decomposition.NMF de `scikitlearn` pour effectuer la factorisation.
+
+```{python}
+model = NMF(n_components=n_catego, init='random', random_state=42,
+            max_iter=nb_iter_max)
+W = model.fit_transform(np.array(M))
+H = model.components_
+
+print("  W a %5d ranges par %5d colonnes"%tuple(np.shape(W)))
+print("  H a %5d ranges par %5d colonnes"%tuple(np.shape(H)))
+```
+
+## Sortie
+
+Pour collecter les données dans $W$ et $H$:
+
+```Python
+
+def display_topics(H,W,words,titles,nb):
+  for i in range(np.shape(H)[0]):
+    catego = [itm[1] for itm in list(reversed(sorted((H[i,j],words[j]) for j in range(np.shape(H)[1]))))[:nb]]
+    print("Catégorie #%2d: %s"%(i,'/'.join(catego)))
+    articles = []
+    c = i
+    for k in range(np.shape(W)[0]): # Correction : on parcourt les lignes de W (les articles)
+      if W[k,c] !=0: # On vérifie que l'article k appartient à la catégorie c (poids significatif)
+        articles.append((W[k,c],k,titles[k]))
+
+    all_articles = list(reversed(sorted(articles)))[:nb]
+    print(*['  - '+ repr(itm[2]) for itm in all_articles], sep='\n')
+``` 
+
+Un exemple de sortie. 15 catégories ont été demandées sur les 500 premiers articles du corpus.
+
+```
+Catégorie # 0: the/of/on
+  - 'The COMPTEL Gamma-Ray Sky'
+  - 'ROSAT Explores the X-Ray Sky'
+  - '"Hale-Bopp, Jupiter, and the Milky Way"'
+
+... 
+
+Catégorie #12: of/the/this
+  - 'Lalande 21185: The Nearest Planetary System?'
+  - 'A World Explorer'
+  - 'MyCn18: An Hourglass Nebula'
+Catégorie #13: a/that/from
+  - 'Andromeda Nebula: Var!'
+  - 'Man Enters Space'
+  - 'The Red Rectangle'
+Catégorie #14: in/the/by
+  - 'Rockets and Robert Goddard'
+  - 'The 76 Meter Lovell Radio Telescope'
+  - 'Julius Caesar and Leap Days'
+
+```
+
+Dans la section suivante il sera question des premiers résultats 
+
+# Discussion des résultats
+
+<!--
+  4. État d'avancement et résultats préliminaires
+
+  Montre des résultats concrets : 
+    statistiques sur les données, 
+	exemple de matrice, 
+	premiers thèmes extraits ou 
+	aperçu du HTML. 
+  Explique ce que ces résultats montrent et ce qu'ils ne permettent pas encore de conclure.
+  -->
+  
+## Le langage naturel
+
+Chaque langue naturelle, écrite, possède une grammaire qui lui est propre. Dans le contexte du projet, il ne semble pas nécessaire à priori de faire une analyse sémantique approfondie.  
+
+La décomposition en catégories d'un corpus comme celui des articles d'APoD exige que l'on porte une attention particulière à sa structure.  Des améliorations substantielles sont observées si on soustrait une liste de mots vide de l'article à analyser.     
+
+## Un lexique spécialisé
+
+Le contenu des articles est spécialisé dans l'astronomie et sa photographie. Le lexique qui y est utilisé contient donc des mots et des termes dont le poids change en relation avec un contenu spécialisé dans un autre domaine.
+
+Un terme peut se former de plusieurs mots pour donner un sens plus précis. Par exemple `light` et `first` sont presque banals pris individuellement. On pourrait même les placer dans une liste de mots superflus (stop words) et les soustraire de l'analyse.
+
+Par contre, le terme `first light` est beaucoup plus important, car il désigne les premières images prises par un télescope, un évènement attendu par les astronomes avec enthousiasme.
+
+## Unification
+
+Un mot anglais va changer selon son nombre, par exemple `galaxy` et `galaxies`.  On peut y voir aussi plusieurs variantes du pluriel selon l'auteur : `nebulae` et `nebulas`. Chaque terme influencera la factorisation à sa manière et de façon moindre. L'union fait la force. Le remplacement par un terme parapluie comme \_ GALAXIE\_ pourra renforcer le poids du concept de galaxie, peu importe sa conjugaison.
+
+## Regroupement
+
+Les objets du [Catalogue de Messier](https://fr.wikipedia.org/wiki/Catalogue_de_Messier)
+ portent un sigle comme M31, M104, etc. L'utilisation d'un terme comme \_MESSIER\_ pourrait permettre d'établir un meilleur pointage pour la matrice à factoriser. M14 n'est mentionné qu'à quelques reprises alors que M81 a plus de 200 apparitions. 
+
+## Une question de poids
+
+L'usage de tf-idf va faire en sorte qu'on attribue des valeurs relatives entre elles au lieu de seulement compter les occurrences. En utilisant tf-idf sur la même matrice de mots avec le même nombre de catégories, on obtient une sortie de meilleure qualité.
+
+```
+Catégorie # 0: saturn/uranus/rings
+  - 'Uranus: The Tilted Planet'
+  - "Jupiter's Rings"
+  - "Uranus' Ring System"
+Catégorie # 1: comet/hyakutake/tail
+  - 'The Sun Sets on Comet Hyakutake'
+  - 'Comet Hyakutake and a Cactus'
+  - 'Comet Hyakutake Passes the Sun'
+Catégorie # 2: jupiter/io/ganymede
+  - 'Galileo Photographs Ganymede'
+  - "Jupiter's Moon Amalthea"
+  - '"Io\'s Active Volcanoes\r\nCredit:"'
+
+...
+
+Catégorie #11: lunar/apollo/module
+  - "Apollo 12's Lunar Module Descends"
+  - 'Apollo 14 on the Moon'
+  - 'Apollo 16: Exploring Plum Crater'
+Catégorie #12: shuttle/space/mmu
+  - 'Floating Free in Space'
+  - 'Repairing Hubble'
+  - 'Challenger Launches Spacelab 2'
+Catégorie #13: gamma/rays/energetic
+  - 'Gamma-Ray Quasars'
+  - '"BATSE\'s Biggest Gamma Ray Burst (Yet)\r\nCredit:"'
+  - 'The Compton Gamma Ray Observatory'
+...
+```
+  
+
+# Pour la suite
+
+<!--
+  5. Évaluation, limites et suite des travaux
+
+  Explique comment 
+    tu évalueras la qualité des thèmes, 
+	quels problèmes restent à résoudre, 
+	quels changements sont nécessaires et 
+	comment tu comptes terminer le projet selon l'échéancier prévu.
+-->
+## Qualité des thèmes obtenus
+
+Comment savoir si les paramètres fournis auront un effet sur la qualité du résultat ? Ce qu'on va considérer :
+
+1. Lorsque placés ensemble, est-ce que les premiers mots de poids forts d'une catégorie font du sens ? Par exemple `chat/automobile/lunettes` contre `hubble/space/telescope`
+
+2. Lorsque présentés sous une forme HTML, les regroupements, les titres des articles s'y rattachant, une vignette ainsi qu'un court échantillon du texte vont ils donner un effet visuel et correct ?
+
+3. Dans [@segaran2007] on note que l'erreur entre M et son produit $W\dot H$ joue sur la condition d'arrêt de la boucle interne de NMF. Selon la matrice à factoriser, un nombre limite d'itérations pourrait être insuffisant. Les essais l'ont d'ailleurs montré. La fonction permet d'allouer un plus grand nombre afin réduire l'erreur à un niveau acceptable. Plus d'itérations à effectuer signifie une plus longue durée à chaque exécution. Il faudra donc calculer cette erreur et ajuster le nombre d'itérations selon une mesure de durée de factorisation.
+
+## Problèmes à résoudre
+
+1. Trouver les bons indicateurs numériques qui vont permettre de mieux choisir le nombre de catégories à produire. Sans cela, le risque encouru est qu'une opération de catégorisation soit peu convaincante faute de preuves. On veut des échelles et des unités entre les données qui soient cohérentes. Les indicateurs qui s'appuient sur une $M$ passée au `tf-idf` vont différer de celle qui contient une fréquence de mots.
+
+2. Gérer la fenêtre glissante. Bien que des tailles arbitraires puissent être établies, est-ce que deux fenêtres peuvent ou non se chevaucher ? Ou encore est-ce que l'apprentissage acquis dans la première est transférable à la seconde ?
+
+3. Comment faire pour unir certains groupes de mots afin de leur donner une juste valeur ? Autrement, on risque de banaliser certains mots pris seuls alors que certaines associations devraient leur donner plus de poid.  Si on prend l'exemple plus haut :
+
+   | Terme repéré  | Quantité | Signification                                                     |
+   |:--------------|:--------:|:------------------------------------------------------------------|
+   | `first`       |   2000   | Un adjectif désignant le premier d'une série quelconque.          |
+   | `light`       |  15000   | En astronomie le mot `lumière` est presque banal dans ce contexte.|
+   | `first light` |    20    | Le `first light` d'un télescope est un évènement important.       |
+
+
+## Changements à apporter
+
+1. Le code montré en exemple devra généraliser la factorisation de sorte que l'on puisse améliorer les catégorisations. 
+
+2. Il faut isoler les paramètres usager et documenter chaque effet qu'ils apportent
+
+3. La présentation des résultats de la factorisation devra se montrer plus flexible. Par exemple, une page web automatiquement générée par le code pourra montrer que les catégories font du sens dans un contexte de présentation au public.
+
+4. Produire un rapport qui va contenir l'information, les mesures et les résultats d'une opération de catégorisation donnée.
+
+<!-- parler en terme de risques et d'étapes subséquentes -->
+
+# Références
+
+
+
+
+
+
+
+
+
+
+<!-- [RESTANTS...]
+
+# Introduction
+Les applications en science des données sont impressionnantes. Prenons un système de vision automatique qui peut classer une série d'images. On veut séparer ces image en catégories. Pour ce faire, on a besoin d'un jeu d'image type qui va entrainer le système afin de permettre de distinguer par exemple, le visage humain d'un animal.  
+
+Si le jeu d'entrainement est mal conçu, subjectif, les résultats seront médiocre.  Une application comme `Google Photo` pouvait confondre un visage Afro-Américain  avec celui d'un grand primate.  Le jeu d'entrainement manquait alors de diversité, en particulier sur les éclairages des peaux foncées.
+
+
+
+
+
+
+-->
+
