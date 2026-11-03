@@ -133,6 +133,12 @@ doc/outil_regex - Brouillon/outil_regex.rapport_files/
 doc/outil_regex - Brouillon/outil_regex.rapport.fix_files/
 doc/outil_regex - Brouillon/outil_regex.rapport.html
 doc/outil_regex - Brouillon/outil_regex.rapport.fix.html
+doc/TN2 - Brouillon/TN2_files/
+doc/TN2 - Brouillon/TN2.html
+src/sci1402_bout_en_bout.Qmd
+src/sci1402_bout_en_bout.html
+src/sci1402_bout_en_bout_files/
+
 
 # Celery stuff
 celerybeat-schedule
