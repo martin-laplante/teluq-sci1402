@@ -7,13 +7,13 @@ import time
 ## Configuration
 ###############################################################################
 source_apod_csv_path = r'..\data\APOD\NASA APOD 1995-2026\nasa_apod_complete.csv'
-source_apod_csv_encoding = 'utf-8-sig'
+source_apod_csv_encoding = 'utf-8'
 
 ###############################################################################
 ## Définitions - "Factory Settings"
 ###############################################################################
 destination_markdown_path = r'.\sci1402_bout_en_bout.Qmd'
-destination_markdown_encoding = 'utf-8-sig'
+destination_markdown_encoding = 'utf-8'
 str_re_split_lines = r'\r?\n(?=199[56789]-\d\d-\d\d|20[012]\d-\d\d-\d\d)'
 str_re_line_parser = r'(?P<date>(199[5-9]|20[0-2]\d)-[01]\d-[0-3]\d),'+\
                      r'(?P<explanation>.*?),'+\
@@ -27,7 +27,9 @@ str_re_finditer_english_term=r'\w[-\w]*'
 
 this_script  = sys.argv[0][-23:]
 destination_markdown_content = r'''---
-format: html
+format: 
+  html:
+    toc: true
 lang: fr-CA
 language:
   title-block-author-single: "Par"
@@ -74,52 +76,58 @@ if __name__=="__main__":
         else:
             print("Cette ligne n'a pas fonctionné",repr(each_line))
     
-    sections['Sommaire']['content'] += "\n  * **enregistrements trouvés**: %d."%(len(records),)
+    sections['Sommaire']['content'] += "\n  * **Enregistrements trouvés**: %d."%(len(records),)
 
     # On comptabilise les mots
     count_per_english_term = collections.defaultdict(int)
     count_per_english_term_LC = collections.defaultdict(int)
-    count_per_english_word_LC = collections.defaultdict(int)
+    english_term_repo = collections.defaultdict(lambda:collections.defaultdict(int))
     for record in records:
         for english_term in re.finditer(str_re_finditer_english_term,
                                         record['explanation']):
             count_per_english_term[english_term.group()]+=1
             count_per_english_term_LC[english_term.group().lower()]+=1
             if re.match(r'^([1-9]\d*|0)$', english_term.group()):
-                pass 
+                english_term_repo['Entiers'][english_term.group()]+=1
             elif re.match(r'^\d+$', english_term.group()):
-                pass
+                english_term_repo['Séries de chiffres'][english_term.group()]+=1
+            elif re.match(r'^\d+(-\d+)+$',english_term.group()):
+                english_term_repo['Nombres unis par un "-"'][english_term.group()]+=1
             elif re.match(r'^(\D+\d+)+\D*$', english_term.group()):
-                pass
+                english_term_repo['Identificateurs 1'][english_term.group()]+=1
             elif re.match(r'^(\d+\D+)+\d*$', english_term.group()):
-                pass
-            elif re.match(r'^[A-Z]+$', english_term.group()):
-                pass
+                english_term_repo['Identificateurs 2'][english_term.group()]+=1
+            elif re.match(r'^[A-Z]+(-[A-Z]+)*$', english_term.group()):
+                english_term_repo['Acronymes'][english_term.group()]+=1
+            elif re.match(r'^[A-Z][a-z]\w*(-[A-Z][a-z]\w*)*$', english_term.group()):
+                english_term_repo['Nom propres et début de phrases'][english_term.group()]+=1
             elif re.match(r'^\w+(-+\w+)+$', english_term.group()):
-                pass
+                english_term_repo['Mots composés, unis par un `-`'][english_term.group().lower()]+=1
             elif re.match(r'^\w+-+$', english_term.group()):
-                pass
+                english_term_repo['Se terminant avec un `-`'][english_term.group().lower()]+=1
             elif re.match(r'^[a-z]+$', english_term.group().lower()):
-                count_per_english_word_LC[english_term.group().lower()]+=1
+                english_term_repo['Mots simples'][english_term.group().lower()]+=1
             else:
-                pass 
+                english_term_repo['Autres'][english_term.group().lower()]+=1
     duration = time.time() - t0      
     sections['Sommaire']['content'] += "\n  * **Durée totale**: %9.6f secondes."%(duration,)
-    sections['Sommaire']['content'] += "\n  * **termes distincts**: %d."%(len(count_per_english_term),)
-    sections['Sommaire']['content'] += "\n  * **mots distincts**: %d (sans casse)."%(len(count_per_english_term_LC),)
+    sections['Sommaire']['content'] += "\n  * **Termes distincts**: %d."%(len(count_per_english_term),)
+    sections['Sommaire']['content'] += "\n  * **Mots distincts**: %d (sans casse)."%(len(count_per_english_term_LC),)
     sum_count = sum(count_per_english_term.values())
-    sections['Sommaire']['content'] += "\n  * **termes au total**: %d."%(sum_count,)
+    sections['Sommaire']['content'] += "\n  * **Termes au total**: %d."%(sum_count,)
     sections['Sommaire']['content'] += "\n  * **Durée moyenne par terme**: %11.9f &mu;S."%(1000000*duration/sum_count,)
-    sections["Mot simples"] = {}
-    sections['Mot simples']['content'] =  "\n  * **Nombre de mots simples trouvés**: %d"%(sum(count_per_english_word_LC.values()),)
-    sections['Mot simples']['content'] += "\n  * **Nombre de mots distincts trouvés**: %d"%(len(count_per_english_word_LC),) 
-
-    simple_words = [(v,k) for k,v in count_per_english_word_LC.items()]
-    tmp = []
-    for v,k in reversed(sorted(simple_words)):
-        tmp.append("<b>%s</b>:&nbsp;%d;"%(k,v))
-    sections['Mot simples']['content'] += '\n\n\n<span style="font-size:smallest;">' + ' '.join(tmp) + '</span>\n\n\n'
-
+    
+    for k,v in    english_term_repo.items():
+        sections[k] = {}
+        sections[k]['content'] =  "\n  * **Nombre de termes trouvés**: %d"%(sum(v.values()),)
+        sections[k]['content'] += "\n  * **Nombre de termes distincts trouvés**: %d"%(len(v),) 
+        
+        simple_words = [(_v,_k) for _k,_v in v.items()]
+        tmp = []
+        for _v,_k in reversed(sorted(simple_words)):
+            tmp.append("<b>%s</b>:&nbsp;%d;"%(_k,_v))
+        sections[k]['content'] += '\n\n\n<span style="font-size:xx-small">' + ' '.join(tmp) + '</span>\n\n\n'
+    
     # Serialisation pour le rapport final
     main_content = []
 
