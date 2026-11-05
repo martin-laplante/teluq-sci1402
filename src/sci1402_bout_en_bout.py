@@ -1,4 +1,5 @@
 import collections
+import hashlib
 import re
 import sys
 import time
@@ -23,7 +24,8 @@ str_re_line_parser = r'(?P<date>(199[5-9]|20[0-2]\d)-[01]\d-[0-3]\d),'+\
                      r'(?P<title>.*?),'+\
                      r'(?P<url>https?:.*?|//player\.vimeo.*?|//www\.youtube.*?|),'+\
                      r'(?P<copyright>.*?)'
-str_re_finditer_english_term=r'\w[-\w]*'
+
+str_re_finditer_english_term=r'[-\w]+'
 
 this_script  = sys.argv[0][-23:]
 destination_markdown_content = r'''---
@@ -53,6 +55,8 @@ if __name__=="__main__":
               encoding=source_apod_csv_encoding) as input_text:
         text = input_text.read()
     print('Fichier lu.')
+    
+    # 2. Traitement des lignes.
     lines = re.split(str_re_split_lines, text)
     sections["Sommaire"] = {
         "intro":"Voici les résultats de la lecture de `%s`"%(source_apod_csv_path,),
@@ -61,9 +65,10 @@ if __name__=="__main__":
     heading = lines[0].split(',')
     sections['Sommaire']['content'] += "\n  * **Nombre de colonnes**: %d:"%(len(heading),)
     sections['Sommaire']['content'] += "\n\n    *" + '*, *'.join([col for col in heading])+'*'
+    print(len(lines),"lignes")
 
-
-    # Construction d'une liste d'enregistrements
+    # 3. Construction d'une liste d'enregistrements
+    
     t0 = time.time()
     records = []
     for each_line in lines[1:]:            
@@ -75,18 +80,35 @@ if __name__=="__main__":
             records.append(mo.groupdict())
         else:
             print("Cette ligne n'a pas fonctionné",repr(each_line))
-    
+    print(len(records),"enregistrements.")    
     sections['Sommaire']['content'] += "\n  * **Enregistrements trouvés**: %d."%(len(records),)
 
-    # On comptabilise les mots
+    # 4. On comptabilise les mots
+
+    #    a) par termes
     count_per_english_term = collections.defaultdict(int)
+
+    #    b) par termes, sans la casse
     count_per_english_term_LC = collections.defaultdict(int)
+    
+    #    c) selon un classement
     english_term_repo = collections.defaultdict(lambda:collections.defaultdict(int))
+
+    #    d) Par terme, sans la casse, par article
+    list_english_term_per_article = collections.defaultdict(list)
+
+    # On cherche aussi les doublons
+    article_title_by_md5 = collections.defaultdict(list)
+
     for record in records:
+        title_of_article = record['title']
+
         for english_term in re.finditer(str_re_finditer_english_term,
                                         record['explanation']):
             count_per_english_term[english_term.group()]+=1
             count_per_english_term_LC[english_term.group().lower()]+=1
+            list_english_term_per_article[title_of_article].append(english_term.group().lower())
+            # Classement selon des expressions simples (entiers, acronymes, etc)
             if re.match(r'^([1-9]\d*|0)$', english_term.group()):
                 english_term_repo['Entiers'][english_term.group()]+=1
             elif re.match(r'^\d+$', english_term.group()):
@@ -109,6 +131,21 @@ if __name__=="__main__":
                 english_term_repo['Mots simples'][english_term.group().lower()]+=1
             else:
                 english_term_repo['Autres'][english_term.group().lower()]+=1
+        md5 = hashlib.md5(''.join(list_english_term_per_article[title_of_article]).encode()).hexdigest()
+        record['md5_article'] = md5
+        article_title_by_md5[md5].append("%(date)s: %(title)s"%record)
+    print("Tous les mots sont comptés.")
+
+    # Articles dupliqués
+    sections['Articles en multiple copies'] = {'content':''}
+    for md5, art in article_title_by_md5.items():
+        if len(art)>1:
+            sections['Rapport des articles en multiple copies']['content'] += '\n  * **%s**: %d articles'%(md5, len(art))
+            #print(md5,len(art),"articles:")
+            for a in art:
+                sections['Rapport des articles en multiple copies']['content'] += '\n    * %s'%(repr(a),)
+    
+    
     duration = time.time() - t0      
     sections['Sommaire']['content'] += "\n  * **Durée totale**: %9.6f secondes."%(duration,)
     sections['Sommaire']['content'] += "\n  * **Termes distincts**: %d."%(len(count_per_english_term),)
@@ -143,9 +180,11 @@ if __name__=="__main__":
             if each_subsection.get('intro'):
                 main_content.append("%(intro)s"%each_subsection)
             main_content.append(each_subsection.get("content",''))
+    print("Serialisation complétée.")
 
     main_content = '\n\n'.join(main_content)
 
     with open(destination_markdown_path,'w+t', 
               encoding=destination_markdown_encoding) as output_text:
         _=output_text.write(destination_markdown_content%locals())
+    print("Sortie complétée.")
