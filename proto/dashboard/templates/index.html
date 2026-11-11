@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interface Noyau Python</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        .container {
+            display: flex;
+            gap: 40px;
+        }
+        .left-panel {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 400px;
+        }
+        .right-panel {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 300px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="date"], input[type="number"], select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .radio-group, .checkbox-group {
+            margin-top: 5px;
+        }
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button[type="submit"] { background-color: #007bff; color: white; }
+        button[type="reset"] { background-color: #6c757d; color: white; }
+        button:hover { opacity: 0.9; }
+        h3, h4 { color: #333; margin-top: 20px; border-bottom: 2px solid #eeeff1; padding-bottom: 5px;}
+        ul { padding-left: 20px; }
+        li { margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+    <h1>Tableau de bord du noyau de traitement</h1>
+    
+    <div class="container">
+        <!-- DIVISION GAUCHE : FORMULAIRE -->
+        <div class="left-panel">
+            <form id="paramForm" method="GET" action="/api/process">
+                
+                <div class="form-group">
+                    <label for="start_date">Date de départ :</label>
+                    <input type="date" id="start_date" name="start_date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="duration_days">Durée :</label>
+                    <select id="duration_days" name="duration_days">
+                        <option value="7">1 Semaine (7 jours)</option>
+                        <option value="28">1 Mois (28 jours)</option>
+                        <option value="90">1 Trimestre (90 jours)</option>
+                        <option value="365" selected>1 Année (365 jours)</option>
+                        <option value="3653">1 Décennie (3653 jours)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="quantity">Quantité désirée :</label>
+                    <input type="number" id="quantity" name="quantity" value="10" min="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Mode d'exécution :</label>
+                    <div class="radio-group">
+                        <input type="radio" id="mode1" name="enum_option" value="standard" checked>
+                        <label style="display:inline;" for="mode1">Standard</label>
+                        <br>
+                        <input type="radio" id="mode2" name="enum_option" value="avance">
+                        <label style="display:inline;" for="mode2">Avancé</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Options (Flags) :</label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="flag_feat1" name="flag_feat1" value="true" checked>
+                        <label style="display:inline;" for="flag_feat1">Option A (Par défaut: Vrai)</label>
+                        <br>
+                        <input type="checkbox" id="flag_feat2" name="flag_feat2" value="true">
+                        <label style="display:inline;" for="flag_feat2">Option B (Par défaut: Faux)</label>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="submit">Soumettre</button>
+                    <button type="reset" id="resetBtn">Réinitialiser</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- DIVISION DROITE : RÉSULTATS DYNAMIQUES -->
+        <div class="right-panel" id="resultPanel">
+            <p style="color: #666; font-style: italic;">En attente de la soumission des paramètres...</p>
+        </div>
+    </div>
+
+    <script>
+        // Initialiser la date du jour par défaut dans le formulaire
+        document.getElementById('start_date').valueAsDate = new Date();
+
+        const form = document.getElementById('paramForm');
+        const resultPanel = document.getElementById('resultPanel');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Empêche le rechargement brutal de la page
+
+            // Récupération des données du formulaire
+            const formData = new FormData(form);
+            
+            // Gestion explicite des boîtiers de sélection (checkboxes non cochées omises par FormData)
+            const params = new URLSearchParams();
+            params.append('start_date', formData.get('start_date'));
+            params.append('duration_days', formData.get('duration_days'));
+            params.append('quantity', formData.get('quantity'));
+            params.append('enum_option', formData.get('enum_option'));
+            params.append('flag_feat1', document.getElementById('flag_feat1').checked);
+            params.append('flag_feat2', document.getElementById('flag_feat2').checked);
+
+            // 1. Construit l'URL avec les paramètres visibles (Requête GET)
+            const apiUrl = `/api/process?${params.toString()}`;
+            
+            // Optionnel : Met à jour la barre d'adresse du navigateur pour voir les paramètres
+            window.history.pushState({}, '', `?${params.toString()}`);
+
+            try {
+                // 2. Envoi de la requête au serveur FastAPI
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error("Erreur serveur lors de la récupération");
+                
+                const jsonResult = await response.json();
+
+                // 3. Génération dynamique du contenu HTML (H4 et UL)
+                resultPanel.innerHTML = "<h2>Résultats du traitement</h2>";
+                
+                // Parcourt les clés du dictionnaire JSON (ex: "Statistiques globales", etc.)
+                for (const [sectionTitle, items] of Object.entries(jsonResult)) {
+                    // Crée le titre de section H4
+                    const h4 = document.createElement('h4');
+                    h4.textContent = sectionTitle;
+                    resultPanel.appendChild(h4);
+
+                    // Crée la liste UL
+                    const ul = document.createElement('ul');
+                    items.forEach(item => {
+                        const li = document.createElement('li');
+                        li.textContent = item;
+                        ul.appendChild(li);
+                    });
+                    resultPanel.appendChild(ul);
+                }
+
+            } catch (error) {
+                resultPanel.innerHTML = `<p style="color:red;">Erreur: ${error.message}</p>`;
+            }
+        });
+
+        // Gestion du bouton Reset pour nettoyer la division de droite
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            resultPanel.innerHTML = `<p style="color: #666; font-style: italic;">En attente de la soumission des paramètres...</p>`;
+            document.getElementById('start_date').valueAsDate = new Date();
+            window.history.pushState({}, '', window.location.pathname);
+        });
+    </script>
+</body>
+</html>

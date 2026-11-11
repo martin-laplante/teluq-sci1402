@@ -138,7 +138,12 @@ doc/TN2 - Brouillon/TN2.html
 src/sci1402_bout_en_bout.Qmd
 src/sci1402_bout_en_bout.html
 src/sci1402_bout_en_bout_files/
+doc/dashboard - Prototype/contribution_ia_quarto.html
+doc/dashboard - Prototype/contribution_ia_quarto_files/
 
+# APOD
+# Fichiers de sortie temporaires
+*.csv.JSON
 
 # Celery stuff
 celerybeat-schedule
