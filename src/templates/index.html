@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interface Noyau Python</title>
+    <!-- Génère automatiquement le bon chemin vers /static/style.css -->
+    <!-- - Source: https://stackoverflow.com/questions/61641514/css-not-recognized-when-served-with-fastapi -->
+    <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
+</head>
+<body>
+
+    <h1>Tableau de bord - SCI 1402</h1>
+    
+    <p>Bienvenu dans ce démonstrateur.  Cette courte interface va vous permettre d'interroger le fichier CSV maitre afin d'obtenir une sous-liste d'articles catégorisés automatiquement.</p>
+    <p>Due à des contraintes de temps d'exécution, l'entièreté de la base de données ne peut pas être utilisée.  Une factorisation ne sera donc possible que sur une décennie tout au plus.</p>
+    <p>Par ailleurs, certaines entrées ont été retirées.  Ainsi la date de fin sous-jacente n'aboutira pas nécessairement à la frontière correspondante du calendrier.</p>
+    <p>Par exemple s'il y a des absences dans le mois de février 2001, le choix d'utiliser 28 jours va prendre en compte le ou les absences et la date de fin sera au-delà du 1<sup>er</sup> mars 2001.</p>
+
+    <div class="container">
+        <!-- DIVISION GAUCHE : Requête -->
+        <div class="left-panel">
+            <form id="paramForm" method="GET" action="/api/process">
+                
+                <div class="form-group">
+                    <label for="start_date">Date de départ :</label>
+                    <input type="date" id="start_date" name="start_date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="duration_days">Durée :</label>
+                    <select id="duration_days" name="duration_days">
+                        <option value="7">1 Semaine (7 jours)</option>
+                        <option value="28" selected>1 Mois (28 jours)</option>
+                        <option value="90">1 Trimestre (90 jours)</option>
+                        <option value="365">1 Année (365 jours)</option>
+                        <option value="3653">1 Décennie (3653 jours)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="nb_catego">Nombre de catégories désirées :</label>
+                    <input type="number" id="nb_catego" name="nb_catego" value="10" min="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Mode d'exécution :</label>
+                    <div class="radio-group">
+                        <input type="radio" id="mode1" name="enum_option" value="standard" checked>
+                        <label style="display:inline;" for="mode1">Standard</label>
+                        <br>
+                        <input type="radio" id="mode2" name="enum_option" value="avance">
+                        <label style="display:inline;" for="mode2">Avancé</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Options:</label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="flag_lowercase" name="flag_lowercase" value="true" checked>
+                        <label style="display:inline;" for="flag_lowercase">Minuscules</label>
+                        <br>
+                        <input type="checkbox" id="flag_tf_idf" name="flag_tf_idf" value="true">
+                        <label style="display:inline;" for="flag_tf_idf">TF-IDF</label>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="submit">Soumettre</button>
+                    <button type="reset" id="resetBtn">Réinitialiser</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- DIVISION DROITE : RÉSULTATS DYNAMIQUES -->
+        <div class="right-panel" id="resultPanel">
+            <p style="color: #666; font-style: italic;">En attente de la soumission des paramètres...</p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', path='/main_web_app.js') }}"></script>
+</body>
+</html>
