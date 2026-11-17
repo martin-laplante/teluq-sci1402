@@ -24,7 +24,7 @@
                 
                 <div class="form-group">
                     <label for="start_date">Date de départ :</label>
-                    <input type="date" id="start_date" name="start_date" required>
+                    <input type="date" id="start_date" name="start_date" value="1995-06-16" required>
                 </div>
 
                 <div class="form-group">
@@ -44,13 +44,22 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Mode d'exécution :</label>
+                    <label>Stratégie :</label>
                     <div class="radio-group">
-                        <input type="radio" id="mode1" name="enum_option" value="standard" checked>
-                        <label style="display:inline;" for="mode1">Standard</label>
+                        <input type="radio" id="mode1" name="strategy" value="tout" checked>
+                        <label style="display:inline;" for="mode1">Tout prendre</label>
                         <br>
-                        <input type="radio" id="mode2" name="enum_option" value="avance">
-                        <label style="display:inline;" for="mode2">Avancé</label>
+                        <input type="radio" id="mode2" name="strategy" value="sans_mots_vides">
+                        <label style="display:inline;" for="mode2">Exclure les mots vides</label>
+                        <br>
+                        <input type="radio" id="mode3" name="strategy" value="noms_propres">
+                        <label style="display:inline;" for="mode3">Noms propres</label>
+                        <br>
+                        <input type="radio" id="mode4" name="strategy" value="acronymes">
+                        <label style="display:inline;" for="mode4">Acronymes</label>
+                        <br>
+                        <input type="radio" id="mode5" name="strategy" value="messier">
+                        <label style="display:inline;" for="mode5">Objets du Catalogue de Messier</label>
                     </div>
                 </div>
 
