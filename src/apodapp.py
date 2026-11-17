@@ -206,9 +206,9 @@ class APOD_App(object):
 
         for i,row in enumerate(M):
             m = [0]*len(row)
-            for j,itm in enumerate(row):
-                if sum_for_each_row[i]:
-                    m[i] = itm/sum_for_each_row[i]
+            for col, itm in enumerate(row):
+                if sum_for_each_row[i]: # eviter une division pa zero ...
+                    m[col] = itm/sum_for_each_row[i] # term freq
             M_tf_if.append(m)
         
         IDF_t = [math.log(len(M)/v) for v in count_for_each_term]
