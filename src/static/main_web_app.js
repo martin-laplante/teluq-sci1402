@@ -1,5 +1,5 @@
-// Initialiser la date du jour par défaut dans le formulaire
-document.getElementById('start_date').valueAsDate = new Date();              // TODO: S'assurer que 1995-06-16
+// Initialiser la date de départ du fichier par défaut dans le formulaire
+document.getElementById('start_date').valueAsDate = new Date("1995-06-16");
 
 const form = document.getElementById('paramForm');
 const resultPanel = document.getElementById('resultPanel');
@@ -18,6 +18,7 @@ form.addEventListener('submit', async (e) => {
     params.append('strategy', formData.get('strategy'));
     params.append('flag_lowercase', document.getElementById('flag_lowercase').checked);
     params.append('flag_tf_idf', document.getElementById('flag_tf_idf').checked);
+    // Mettre d'autre param ici, si nécessaire   ##PARAM
 
     // 1. Construit l'URL avec les paramètres visibles (Requête GET)
     const apiUrl = `/api/process?${params.toString()}`;
@@ -32,11 +33,12 @@ form.addEventListener('submit', async (e) => {
         
         const jsonResult = await response.json();
 
-        // 3. Génération dynamique du contenu HTML (H4 et UL)
+        // 3. Génération dynamique du contenu HTML (H4 et UL) "resultPanel" est l'ID html du template ##RESPO##
         resultPanel.innerHTML = "<h2>Résultats du traitement</h2>";   // TODO: Revoir. pas obligatoire.
         
-        // Parcourt les clés du dictionnaire JSON (ex: "Statistiques globales", etc.)  // TODO: Revoir si on veut plus
-        for (const [sectionTitle, items] of Object.entries(jsonResult)) {              // Ex. Panneau suplémenntaire, etc
+        // Parcourt les clés du dictionnaire JSON (ex: "Statistiques globales", etc.)  
+        // Cle `sectionTitle`, liste: `items`
+        for (const [sectionTitle, items] of Object.entries(jsonResult)) {              
             // Crée le titre de section H4
             const h4 = document.createElement('h4');
             h4.textContent = sectionTitle;
@@ -44,7 +46,7 @@ form.addEventListener('submit', async (e) => {
 
             // Crée la liste UL
             const ul = document.createElement('ul');
-            items.forEach(item => {
+            items.forEach(item => {                       // Notre liste
                 const li = document.createElement('li');
                 li.textContent = item;
                 ul.appendChild(li);
