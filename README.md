@@ -18,6 +18,8 @@ Projet de fin de certificat "4865 Science des données" de l'université TÉLUQ
   - Sous **Windows** : `runme.bat` pour une démo de bout en bout (exclut le dashboard)
   - Pour le dashboard, dans une invite de commande :
     - `python -m uvicorn main_web_app:app --reload`
+    - Attendre que le message `Application startup complete.` apparaisse.
+    - Avec un navigateur web, atteindre <http://127.0.0.1:8000>
 <!--- Sous **Linux**: `runme.sh`-->
 
 ## Structure
