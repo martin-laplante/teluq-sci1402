@@ -26,11 +26,11 @@ async def process_data(
     start_date: date = Query(...),
     duration_days: int = Query(...),
     nb_catego: int = Query(...),
-    enum_option: str = Query(...),
+    strategy: str = Query(...),
     flag_lowercase: bool = Query(False),
     flag_tf_idf: bool = Query(False)
 ):
 
-    result_data = apodapp.query(start_date, duration_days, nb_catego, flag_lowercase, flag_tf_idf)
+    result_data = apodapp.query(start_date, duration_days, nb_catego, flag_lowercase, flag_tf_idf, strategy)
 
     return result_data
