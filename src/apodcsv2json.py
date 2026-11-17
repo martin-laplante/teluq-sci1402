@@ -21,6 +21,13 @@ def get_pos_from_date(_date):
         return -1
     return result
 
+def build_word_stream(in_txt):
+    """On crée une chaine de mots simple basé sur le contenu de `in_txt`."""
+    if not isinstance(in_txt,str):
+        return ''
+    return ''.join(mo.group() for mo in re.finditer(r"[-\w]+",in_txt.lower()))
+
+
 # le start ici ----------+      est la position dans le CSV
 #                        |      donc 0 est le premier 
 #                        v      
@@ -33,7 +40,7 @@ def apodcsv2json(path, start, nb, chop, **args):
     result = {}
     nbskip=0
     for position, record in enumerate(records[start:]):        
-        word_stream = []
+        word_stream = build_word_stream(record['explanation'])
         row = {
             'position':start+position,  # LA POSITION DANS LA LISTE PANDA
             'date_ymd':record['date'],
@@ -46,7 +53,6 @@ def apodcsv2json(path, start, nb, chop, **args):
         try:
             if record['explanation'] == '': continue
             for itm in chop(record['explanation']): #                          TODO:  chop must be callable 
-                word_stream.append(itm.lower())
                 if itm not in row['words']:
                     row['words'][itm]=0
                 row['words'][itm]+=1
@@ -61,10 +67,9 @@ def apodcsv2json(path, start, nb, chop, **args):
             print()
             nbskip+=1
             continue                 # ICI aussi `Position` va skip.
-        ws = ''.join(word_stream)
         if args.get('show_ws'): #                                              TODO:  Document optional parameter
-            row['word_stream'] = ws
-        md5 = hashlib.md5(ws.encode()).hexdigest()
+            row['word_stream'] = word_stream
+        md5 = hashlib.md5(word_stream.encode()).hexdigest()
         if args.get('want_uid'): #                                             TODO:  Document optional parameter
             row['md5_uid'] = md5
         key = md5
