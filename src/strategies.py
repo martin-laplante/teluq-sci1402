@@ -45,7 +45,7 @@ def noms_propres(x):
 def acronymes(x):
     """Stratégie permettant de repérer les acronymes."""
     res = []
-    for mots in list(re_finditer_acronyms):
+    for mots in list(re_finditer_acronyms.finditer(x)):
         res.append(mots.group().strip())
     return res
 
