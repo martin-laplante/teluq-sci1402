@@ -15,7 +15,7 @@ form.addEventListener('submit', async (e) => {
     params.append('start_date', formData.get('start_date'));
     params.append('duration_days', formData.get('duration_days'));
     params.append('nb_catego', formData.get('nb_catego'));
-    params.append('enum_option', formData.get('enum_option'));
+    params.append('strategy', formData.get('strategy'));
     params.append('flag_lowercase', document.getElementById('flag_lowercase').checked);
     params.append('flag_tf_idf', document.getElementById('flag_tf_idf').checked);
 
