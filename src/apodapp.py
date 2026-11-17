@@ -16,7 +16,9 @@ from sklearn.decomposition import NMF
 
 # Local
 from apodcsv2json import apodcsv2json
+from apodcsv2json import get_pos_from_date
 from strategies import strategies
+
 # Config
 import config
 
@@ -30,7 +32,6 @@ case_sens = {
 
                                                                                                                                                               # TODO: Placer dans un fichier `strategies.py`
 
-from apodcsv2json import get_pos_from_date
 
                                                                                # TODO: Placer dans un fichier de traitement
 def ValuesToScores(lst):
@@ -46,19 +47,6 @@ def ValuesToScores(lst):
     for itm in lst:
         result.append(itm/_sum)
     return result
-
-def Normalize(lst, S):
-    """Prends une liste de valeur, et la normalise selon S.
-       La somme ne donnera pas nécessairement 1.0.
-       ```Python
-       Normalize([1,2,3,4],100)
-       # [0.01, 0.02, 0.03, 0.04]
-       ```"""
-    result = []
-    for itm in lst:
-        result.append(itm/S)
-    return result
-
 
 
 def ScoreSort(lst):
@@ -92,73 +80,88 @@ def CreateTagListFromScores(scores,tags,limscore,limnb):
         if nb>=limnb:break
     return result
 
-
-
 class APOD_App(object):
-    """"""
+    """Point d'entrée.  Le serveur s'assure d'instancier et fait appel à `query` lorsqu'une requete est recue."""
+
     def __init__(self):
-        """"""
-        print("init:done.")
+        """Constructeur."""
+        pass
+
     def initialize(self):
         """"""
-        print("initialize:done.")
+        pass
 
     def query(self, start_date, duration_days, nb_catego, flag_lowercase, flag_tf_idf, strategy):
+        """Fonction principale.  Appelée lorsqu'une requete est recue par le serveur."""
+
+        ## Obtenir la position des enregistrements selon la date demandée.
+        #
         pos = get_pos_from_date(start_date)
+
+        ## Une date hors champs va engendrer une réponse d'erreur.
+        #
         if pos<0:
             return {
                 "*** ERREUR ***" : [
                     "Start date: %s"%(repr(start_date),),
                     "La date doit se situer entre 1995-06-16 et 2026-02-02 inclusivement."]
             }
+
+        ## Certaines stratégies on besoin de presever la casse, on force la valeur a `False` dans ces cas.
+        #
+        if strategy in {'noms_propres', 'acronymes'}:
+            flag_lowercase = False
         
-        strat_finale = lambda x: strategies[strategy](case_sens.get(flag_lowercase, lambda x:x)(x))
+        strategie_finale = lambda x: strategies[strategy](case_sens.get(flag_lowercase, lambda x:x)(x))
 
+        ## Démarrage du chronomètre pour les résultats de performance.
         t0 = time.time()
-                                                                               # TODO: changer le nom `_
-        _ = apodcsv2json(config.apod_csv_path,pos,duration_days,strat_finale)
 
+        apod_json_data = apodcsv2json(config.apod_csv_path,pos,duration_days,strategie_finale)
+
+        ## Certaines stratégies sont assez restrictive pour permettre de continuer.
+        #
+        if not apod_json_data:
+            return {
+                "*** ERREUR ***" : [
+                    "Les choix des paramètres n'ont pas trouvé d'article à répartir"]
+            }
+
+        ## Construction des entrées
+        # 
         M = []
         tags = []
         titles = []
         catego = {
         }
 
-        for row in _.values():
+        ## Construction de la liste d'étiquettes (tags)
+        #
+        for row in apod_json_data.values():
             titles.append(row.get('label','YYYY-MM-DD'))
             for w,count in row.get('words',{}).items():
                 if w not in tags:
                     tags.append(w)
-        for row in _.values():
+
+        ## Construction de la matrice M
+        #
+        for row in apod_json_data.values():
             m = [0]*len(tags)
             words = row.get('words',{})
             for i,word in enumerate(tags):
                 c = words.get(word,0)
                 m[i]=c
             M.append(m)
+        
+        ## Largeur et Hauteur
+        #
         Mw=len(m)
         Mh=len(M)
-        # tf-idf...                                                            # TODO: Isoler dans une fonction/methode.
+
+        # tf-idf...
         if flag_tf_idf:
-            sum_for_each_row = [sum(row) for row in M]
-            count_for_each_term = [0 for _ in range(len(tags))]
-            for row in M:
-                for col,value in enumerate(row):
-                    if value!=0:
-                        count_for_each_term[col]+=1
-            M_tf_if = []
-            #print("???", [tags[i] for i in range(len(tags)) if not count_for_each_term[i]])
-            for i,row in enumerate(M):
-                m = [0]*len(row)
-                for j,itm in enumerate(row):
-                    if sum_for_each_row[i]:
-                        m[i] = itm/sum_for_each_row[i]
-                M_tf_if.append(m)
-            IDF_t = [math.log(len(M)/v) for v in count_for_each_term]
-            for i,row in enumerate(M):
-                for j, value in enumerate(row):
-                    M_tf_if[i][j] = value * IDF_t[j]
-            M = M_tf_if
+            M = self.get_td_idf_M(M, tags)
+
         model = NMF(n_components=nb_catego, init='random', random_state=42)
         W = model.fit_transform(M)
         H = model.components_
@@ -174,11 +177,11 @@ class APOD_App(object):
         result = {
             "Sommaire de l'opération" : [
                 "Date de départ demandée %s"%(start_date,),
-                "Date de départ obtenue  %s"%(list(_.values())[0]['date_ymd'],),
+                "Date de départ obtenue  %s"%(list(apod_json_data.values())[0]['date_ymd'],),
                 "Position %d"%(pos,),
-                "Date d'arrivée %s"%(list(_.values())[-1]['date_ymd'],),
+                "Date d'arrivée %s"%(list(apod_json_data.values())[-1]['date_ymd'],),
                 "Stratégie utilisée: %s"%(strategy,),
-                "Longueu de '_': "+str(len(_)),
+                "Longueur du 'apod_json_data': "+str(len(apod_json_data)),
                 "minuscules:     %s"%(flag_lowercase,),
                 "TF-IDF:    %s"%(flag_tf_idf,),
                 "M:  %d X %d (%d elements)"%(Mh, Mw, Mh * Mw,),
@@ -189,4 +192,32 @@ class APOD_App(object):
         result.update(catego)
         return result
 
+    def get_td_idf_M(self, M, tags):
+        """Calcul du TF-IDF selon la demande."""
+               
+        sum_for_each_row = [sum(row) for row in M]
+        count_for_each_term = [0 for _ in range(len(tags))]
+        for row in M:
+            for col,value in enumerate(row):
+                if value!=0:
+                    count_for_each_term[col]+=1
+        
+        M_tf_if = []
+
+        for i,row in enumerate(M):
+            m = [0]*len(row)
+            for j,itm in enumerate(row):
+                if sum_for_each_row[i]:
+                    m[i] = itm/sum_for_each_row[i]
+            M_tf_if.append(m)
+        
+        IDF_t = [math.log(len(M)/v) for v in count_for_each_term]
+        for i,row in enumerate(M):
+            for j, value in enumerate(row):
+                M_tf_if[i][j] = value * IDF_t[j]
+
+        return M_tf_if
+
+## On démarre la patente
+#
 apodapp = APOD_App()
