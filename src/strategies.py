@@ -1,5 +1,15 @@
+##
+## SCI 1402 - apodapp 
+## ==================           
+##
+## Coeur de l'application `Dashboard`. 
+##
+## (C)opyright, 2026 by Martin Laplante
+
+# Python
 import re
 
+# Local
 from stop_words import stop_words
 
 # Stratégie de base : exporter avec les strategies
