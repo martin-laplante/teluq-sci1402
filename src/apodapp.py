@@ -1,65 +1,34 @@
-import time                                                                    # TODO: Bannieres, Copyrights, etc
+##
+## SCI 1402 - apodapp 
+## ==================           
+##
+## Coeur de l'application `Dashboard`. 
+##
+## (C)opyright, 2026 by Martin Laplante
+
+# Python
+import time
 import math
 
+# Tiers
 import numpy as np
-import pandas as pd
 from sklearn.decomposition import NMF
 
-
+# Local
 from apodcsv2json import apodcsv2json
-
+from strategies import strategies
+# Config
 import config
-from stop_words import stop_words
 
 # Lorsque l'option `minuscules` est applicable et choisie, on abaisse la casse sur la chaine d'entrée.
+# De cette maniere tous les mots comme les mots vides on la meme valeur interne et seront plus facile à cibler.
+# Ce n'est pas toujours le cas.  Par exemple, la cassse est nécessaire pour isoler des noms propres.
 case_sens = {
     False: lambda x: x,
     True: lambda x: x.lower(),
 }
 
                                                                                                                                                               # TODO: Placer dans un fichier `strategies.py`
-def sans_mots_vides(x):
-    res = []
-    for mot in config.re_findall.findall(x):
-        if mot.lower() in stop_words:continue
-        res.append(mot)
-    return res
-def noms_propres(x):
-    import re
-    res = []
-    for mots in list(re.finditer(r'[A-Z][-a-z]+(\s+[A-Z][-a-z]+)+',x)):
-        if mots.group().strip() in {'Photo Gallery',
-            'Jerry Bonnell','Robert Nemiroff','In July','Astronomy Picture','Astronomy Pictures',}: continue
-        if mots.group().strip().endswith("Explanation"):
-            res.append(mots.group().strip().replace("Explanation",'').strip())
-            continue    
-        if mots.group().strip().endswith("Picture Credit"):
-            res.append(mots.group().strip().replace("Picture Credit",'').strip())
-            continue   
-        res.append(mots.group().strip())
-    return res
-
-def acronymes(x):
-    import re
-    res = []
-    for mots in list(re.finditer(r"(?<=\()[-0-9A-Z]+(?=\))|[A-Z]{5,}|[BCDFGHJKLMNPQRSTVWXZ]{2,4}",x)):
-        res.append(mots.group().strip())
-    return res
-
-def messier(x):
-    import re
-    res = []
-    for mots in list(re.finditer(r"Messier\s*\d+|(?<=\W)m\s*\d+(?=\W)",x,re.I)):
-        res.append(mots.group().strip())
-    return res
-
-strategies = {
-    'tout' : lambda x : config.re_findall.findall(x),
-    'sans_mots_vides': sans_mots_vides,
-    'noms_propres': noms_propres,
-    'acronymes':acronymes,
-    'messier':messier,
-}
 
 from apodcsv2json import get_pos_from_date
 
