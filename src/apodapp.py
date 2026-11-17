@@ -37,11 +37,26 @@ def noms_propres(x):
         res.append(mots.group().strip())
     return res
 
+def acronymes(x):
+    import re
+    res = []
+    for mots in list(re.finditer(r"(?<=\()[-0-9A-Z]+(?=\))|[A-Z]{5,}|[BCDFGHJKLMNPQRSTVWXZ]{2,4}",x)):
+        res.append(mots.group().strip())
+    return res
+
+def messier(x):
+    import re
+    res = []
+    for mots in list(re.finditer(r"Messier\s*\d+|(?<=\W)m\s*\d+(?=\W)",x,re.I)):
+        res.append(mots.group().strip())
+    return res
 
 strategies = {
     'tout' : lambda x : config.re_findall.findall(x),
     'sans_mots_vides': sans_mots_vides,
     'noms_propres': noms_propres,
+    'acronymes':acronymes,
+    'messier':messier,
 }
 
 from apodcsv2json import get_pos_from_date
@@ -117,7 +132,7 @@ class APOD_App(object):
         """"""
         print("initialize:done.")
 
-    def query(self, start_date, duration_days, nb_catego, flag_lowercase, flag_tf_idf, strategy = 'sans_mots_vides'):
+    def query(self, start_date, duration_days, nb_catego, flag_lowercase, flag_tf_idf, strategy):
         pos = get_pos_from_date(start_date)
         if pos<0:
             return {
