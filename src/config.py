@@ -1,12 +1,12 @@
-import re
+import re #                                                                    TODO: Bannieres, Copyrights, etc
 
-# TODO: Tansform to relative
+#                                                                              TODO: Tansform to relative
 apod_csv_path = r'C:\Users\Martin\Desktop\teluq-sci1402\data\APOD\NASA APOD 1995-2026\nasa_apod_complete.csv'
 
 
 
 
-class KISS_logger(object):
+class KISS_logger(object):                                                    # YAGNI ?
     def D(self,*args):
         print(*args)
     def E(self,*args):
@@ -16,7 +16,7 @@ class KISS_logger(object):
 log = KISS_logger()
 
 
-re_findall = re.compile(r'[-\w]+') # Modèle de base ...
+re_findall = re.compile(r'[-\w]+') # Stratégie de base : exporter avec les strategies
 
 debug_add_word_stream = False
 
@@ -31,7 +31,7 @@ debug_add_word_stream = False
 
 
 
-
+# Envoe besoin ?
 
 
 line_sep = re.compile( r'\r?\n(?=199[56789]-\d\d-\d\d|20[012]\d-\d\d-\d\d)' )

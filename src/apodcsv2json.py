@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date                                                      # TODO: Bannieres, Copyrights, etc
 import hashlib
 import json
 import re
@@ -9,7 +9,7 @@ import pandas as pd
 
 from date2pos import date2pos
 
-def get_pos_from_date(_date):
+def get_pos_from_date(_date):                                                  # TODO: Mettre dans date2pos ...
     print(repr(_date))
     if isinstance(_date, date):
         _date = _date.strftime("%Y-%m-%d")
@@ -87,7 +87,7 @@ def apodcsv2json(path, start, nb, chop, **args):
 # class ___Wrapper(object)                                                     TODO: Implement
 
 # Quelques tests ...
-if __name__=="__main__":
+if __name__=="__main__":                                                     # TODO: Est-ce que ca marche toujours ?
     import config
 
     log = 'log' in dir(config) and config.log or False

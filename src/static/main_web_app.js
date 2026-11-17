@@ -1,5 +1,5 @@
 // Initialiser la date du jour par défaut dans le formulaire
-document.getElementById('start_date').valueAsDate = new Date();
+document.getElementById('start_date').valueAsDate = new Date();              // TODO: S'assurer que 1995-06-16
 
 const form = document.getElementById('paramForm');
 const resultPanel = document.getElementById('resultPanel');
@@ -33,10 +33,10 @@ form.addEventListener('submit', async (e) => {
         const jsonResult = await response.json();
 
         // 3. Génération dynamique du contenu HTML (H4 et UL)
-        resultPanel.innerHTML = "<h2>Résultats du traitement</h2>";
+        resultPanel.innerHTML = "<h2>Résultats du traitement</h2>";   // TODO: Revoir. pas obligatoire.
         
-        // Parcourt les clés du dictionnaire JSON (ex: "Statistiques globales", etc.)
-        for (const [sectionTitle, items] of Object.entries(jsonResult)) {
+        // Parcourt les clés du dictionnaire JSON (ex: "Statistiques globales", etc.)  // TODO: Revoir si on veut plus
+        for (const [sectionTitle, items] of Object.entries(jsonResult)) {              // Ex. Panneau suplémenntaire, etc
             // Crée le titre de section H4
             const h4 = document.createElement('h4');
             h4.textContent = sectionTitle;

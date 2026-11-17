@@ -1,4 +1,4 @@
-import time
+import time                                                                    # TODO: Bannieres, Copyrights, etc
 import math
 
 import numpy as np
@@ -10,12 +10,15 @@ from apodcsv2json import apodcsv2json
 
 import config
 
+# Lorsque l'option `minuscules` est applicable et choisie, on abaisse la casse sur la chaine d'entrée.
 case_sens = {
     False: lambda x: x,
     True: lambda x: x.lower(),
 }
 
+                                                                               # TODO: Sortir dans un fichier `stop_words.py`
 stop_words = ('incorporating', 'investigating', 'nevertheless', 'even though', 'designated', 'discovered', 'yourselves', 'themselves', 'everywhere', 'whereafter', 'throughout', 'thereafter', 'everything', 'beforehand', 'afterwards', 'meanwhile', 'sometimes', 'therefore', 'including', 'wandering', 'utilizing', 'ourselves', 'yesterday', 'something', 'somewhere', 'elsewhere', 'whereupon', 'thereupon', 'otherwise', 'hereafter', 'launched', 'together', 'studying', 'yourself', 'anything', 'hereupon', 'describe', 'whatever', 'formerly', 'interest', 'everyone', 'whenever', 'although', 'anywhere', 'becoming', 'latterly', 'sometime', 'wherever', 'moreover', 'amoungst', 'through', 'nowhere', 'besides', 'because', 'himself', 'further', 'hundred', 'herself', 'against', 'between', 'tonight', 'towards', 'joining', 'usually', 'instead', 'however', 'without', 'whoever', 'whether', 'becomes', 'wherein', 'whereby', 'whereas', 'several', 'perhaps', 'seeming', 'another', 'amongst', 'neither', 'whither', 'fifteen', 'already', 'serious', 'thereby', 'sincere', 'therein', 'somehow', 'dearest', 'nothing', 'someone', 'couldnt', 'titled', 'latest', 'having', 'during', 'inside', 'before', 'unlike', 'though', 'called', 'within', 'beyond', 'dubbed', 'itself', 'should', 'myself', 'toward', 'across', 'theirs', 'whence', 'bottom', 'beside', 'please', 'rather', 'mostly', 'almost', 'latter', 'namely', 'always', 'indeed', 'amount', 'anyhow', 'anyone', 'anyway', 'thence', 'around', 'nobody', 'others', 'became', 'become', 'eleven', 'either', 'behind', 'former', 'seemed', 'hereby', 'herein', 'detail', 'cannot', 'except', 'system', 'enough', 'twelve', 'twenty', 'unless', 'since', 'below', 'still', 'these', 'today', 'could', 'using', 'every', 'watch', 'maybe', 'named', 'would', 'doing', 'taken', 'there', 'those', 'being', 'again', 'other', 'until', 'where', 'which', 'while', 'yours', 'under', 'about', 'above', 'after', 'their', 'found', 'forty', 'often', 'among', 'third', 'thick', 'along', 'eight', 'alone', 'three', 'first', 'front', 'empty', 'least', 'hasnt', 'fifty', 'never', 'hence', 'noone', 'might', 'whole', 'whose', 'sixty', 'seems', 'once', 'that', 'into', 'left', 'away', 'been', 'each', 'this', 'seen', 'down', 'they', 'same', 'from', 'whom', 'your', 'than', 'like', 'have', 'also', 'over', 'here', 'thus', 'both', 'more', 'were', 'does', 'many', 'some', 'such', 'very', 'next', 'join', 'them', 'last', 'then', 'near', 'only', 'just', 'most', 'what', 'when', 'will', 'with', 'hers', 'ours', 'name', 'nine', 'none', 'onto', 'part', 'seem', 'show', 'side', 'take', 'back', 'thin', 'bill', 'call', 'cant', 'dear', 'done', 'thru', 'else', 'even', 'ever', 'fill', 'find', 'fire', 'upon', 'well', 'five', 'four', 'full', 'give', 'keep', 'less', 'made', 'mill', 'mine', 'miss', 'move', 'much', 'must', 'her', 'has', 'had', 'few', 'did', 'can', 'are', 'any', 'own', 'all', 'you', 'she', 'our', 'who', 'the', 'one', 'off', 'nor', 'why', 'was', 'but', 'for', 'now', 'its', 'and', 'two', 'not', 'new', 'out', 'may', 'how', 'his', 'too', 'him', 'inc', 'etc', 'mrs', 'due', 'sir', 'six', 'cry', 'ltd', 'con', 'yet', 'top', 'let', 'per', 'ten', 'via', 'put', 'see', 'get', 'is', 'on', 'it', 'to', 'my', 'so', 'at', 'as', 'by', 'we', 'no', 'be', 'me', 'in', 'an', 'am', 'if', 'ie', 'of', 'up', 'or', 'mr', 'un', 'do', 'de', 'go', 'eg', 'co', 'us', 'he', 're', 'i', 'a', )
+                                                                               # TODO: Placer dans un fichier `strategies.py`
 def sans_mots_vides(x):
     res = []
     for mot in config.re_findall.findall(x):
@@ -61,7 +64,7 @@ strategies = {
 
 from apodcsv2json import get_pos_from_date
 
-
+                                                                               # TODO: Placer dans un fichier de traitement
 def ValuesToScores(lst):
     """Prends une liste de valeur, en fait la somme et donne une nouvelle liste dont les valeurs deviennent un rapport à cette somme.
        Si la somme est 100 et qu'on a un élément de la liste qui vaut 50 alors la liste résultante aura 0.5 à cette nouvelle position.
@@ -144,7 +147,7 @@ class APOD_App(object):
         strat_finale = lambda x: strategies[strategy](case_sens.get(flag_lowercase, lambda x:x)(x))
 
         t0 = time.time()
-
+                                                                               # TODO: changer le nom `_
         _ = apodcsv2json(config.apod_csv_path,pos,duration_days,strat_finale)
 
         M = []
@@ -167,7 +170,7 @@ class APOD_App(object):
             M.append(m)
         Mw=len(m)
         Mh=len(M)
-        # tf-idf...
+        # tf-idf...                                                            # TODO: Isoler dans une fonction/methode.
         if flag_tf_idf:
             sum_for_each_row = [sum(row) for row in M]
             count_for_each_term = [0 for _ in range(len(tags))]
@@ -199,7 +202,7 @@ class APOD_App(object):
 
         duration = time.time()-t0
         duration_per_elements = duration/(Mh*Mw)
-        
+                                                                               # TODO: Revoir pertinence
         result = {
             "Sommaire de l'opération" : [
                 "Date de départ demandée %s"%(start_date,),
