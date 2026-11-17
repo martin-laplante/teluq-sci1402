@@ -1,22 +1,29 @@
+##
+## SCI 1402 - apodapp 
+## ==================           
+##
+## Coeur de l'application `Dashboard`. 
+##
+## (C)opyright, 2026 by Martin Laplante
+
+# Python
 from datetime import date                                                      # TODO: Bannieres, Copyrights, etc
 import hashlib
 import json
 import re
 import time
 
-
+# Tiers
 import pandas as pd
 
-from date2pos import date2pos
+# Local
+from date2pos import date2pos  # BD de conversion
 
-def get_pos_from_date(_date):                                                  # TODO: Mettre dans date2pos ...
-    print(repr(_date))
+def get_pos_from_date(_date):
+    """Permet de choisir la bonne position de départ selon une date fournie."""
     if isinstance(_date, date):
         _date = _date.strftime("%Y-%m-%d")
-        print(repr(_date))
-    print(repr(_date))
     result = date2pos.get(_date)
-    print(repr(result))
     if result == None:
         return -1
     return result
@@ -32,8 +39,8 @@ def build_word_stream(in_txt):
 #                        |      donc 0 est le premier 
 #                        v      
 def apodcsv2json(path, start, nb, chop, **args):
-    """""" #                                                                   TODO: Doc
-    #                                                                          TODO: Validate input param
+    """Convertis le CSV en dictionnaire Python et forme une sortie au fomat JSON."""
+
     dataframe = pd.read_csv(path)
     records = dataframe.to_dict(orient='records')
 
@@ -51,11 +58,16 @@ def apodcsv2json(path, start, nb, chop, **args):
             'words': {},
         }
         try:
-            if record['explanation'] == '': continue
+            if record['explanation'] == '':
+                nbskip+=1
+                continue
             for itm in chop(record['explanation']): #                          TODO:  chop must be callable 
                 if itm not in row['words']:
                     row['words'][itm]=0
                 row['words'][itm]+=1
+            if len(row['words'])==0:
+                nbskip+=1
+                continue  # On ne sort pas de liste resultante vide.
         except TypeError as errType: #                                         TODO:  Err Management/Logg 
             nbskip +=1
             continue                 # ICI on va avoir un saut du champs `Position`` dans la sortie
@@ -79,26 +91,23 @@ def apodcsv2json(path, start, nb, chop, **args):
         result[key]=row #                                                      TODO: X-ref avec rapport 1/2 parcours que les duplic sont pas permis
         nb-=1
         if nb<=0:break
-    if nbskip:
-        print("nbskip",nbskip)
     return result #                                                            TODO: A list or a dictionary ?
-
-
-# class ___Wrapper(object)                                                     TODO: Implement
 
 # Quelques tests ...
 if __name__=="__main__":                                                     # TODO: Est-ce que ca marche toujours ?
+    from strategies import strategies
+    
     import config
 
     log = 'log' in dir(config) and config.log or False
 
     path = config.apod_csv_path
     start,nb=(0,11186)
-    regex = config.re_findall
-    chop = lambda x: config.re_findall.findall(x)
+#   regex = config.re_findall
+#   chop = lambda x: config.re_findall.findall(x)
 #   chop = lambda x: (mo.groupdict()['minn'] for mo in re.finditer(r'(?<=\W)(?P<minn>[a-z]+)(?=\W)',x))
 #   chop = lambda x: (mo.groupdict()['ttl']  for mo in re.finditer(r'(?<=\W)(?P<ttl>[A-Z][a-z]+)(?=\W)',x))
-
+    chop = strategies['acronymes']
     result = apodcsv2json(path, start, nb, chop, show_ws = config.debug_add_word_stream)
 
     with open(config.apod_csv_path+'.JSON','w+t',encoding='utf-8') as outf:
