@@ -7,9 +7,9 @@ Projet de fin de certificat "4865 Science des données" de l'université TÉLUQ
   - NumPy
   - Pandas
   - SciKitLearn (sklearn)
-  - fastapi
+  - fastapi (with uvicorn and jinja2)
+  - PIL (Pillow)
   - **Optionnel** &mdash; pour les exemples du livre `(Segaran, 2007)`
-    - PIL (Pillow)
     - feedparser
     - feedgen
     - beatifulsoup4

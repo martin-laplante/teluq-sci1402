@@ -7,7 +7,7 @@
 ## (C)opyright, 2026 by Martin Laplante
 
 # Python
-from datetime import date                                                      # TODO: Bannieres, Copyrights, etc
+from datetime import date
 import hashlib
 import json
 import re
@@ -32,7 +32,7 @@ def build_word_stream(in_txt):
     """On crée une chaine de mots simple basé sur le contenu de `in_txt`."""
     if not isinstance(in_txt,str):
         return ''
-    return ''.join(mo.group() for mo in re.finditer(r"[-\w]+",in_txt.lower()))
+    return list(mo.group() for mo in re.finditer(r"[-\w]+", in_txt))
 
 
 # le start ici ----------+      est la position dans le CSV
@@ -54,47 +54,50 @@ def apodcsv2json(path, start, nb, chop, **args):
             'date_secs':time.mktime(time.strptime(record['date'], "%Y-%m-%d")),
             'title':record['title'],
             # Compatibilité avec l'entrée du factorisateur
-            'label': "%(date)s -- %(title)s" % record,
+            'label': "%(date)s -- %(title)s" % record + '::...' + ' '.join(word_stream[15:30]) + '...',
             'words': {},
         }
         try:
             if record['explanation'] == '':
                 nbskip+=1
                 continue
-            for itm in chop(record['explanation']): #                          TODO:  chop must be callable 
+            for itm in chop(record['explanation']):
                 if itm not in row['words']:
                     row['words'][itm]=0
                 row['words'][itm]+=1
             if len(row['words'])==0:
                 nbskip+=1
                 continue  # On ne sort pas de liste resultante vide.
-        except TypeError as errType: #                                         TODO:  Err Management/Logg 
+        except TypeError as errType:
             nbskip +=1
-            continue                 # ICI on va avoir un saut du champs `Position`` dans la sortie
-        except Exception as err:#                                              TODO:  Err Management/Logg 
+            continue
+        except AttributeError as errAttr:
+            nbskip +=1
+            continue
+        except Exception as err:
             print(repr(err)+':',type(err))
             print(row['position'])
             print(record['date'])
             print(record['explanation'])
             print()
             nbskip+=1
-            continue                 # ICI aussi `Position` va skip.
-        if args.get('show_ws'): #                                              TODO:  Document optional parameter
+            continue
+        if args.get('show_ws'):
             row['word_stream'] = word_stream
-        md5 = hashlib.md5(word_stream.encode()).hexdigest()
-        if args.get('want_uid'): #                                             TODO:  Document optional parameter
+        md5 = hashlib.md5((''.join(word_stream)).lower().encode()).hexdigest()
+        if args.get('want_uid'):
             row['md5_uid'] = md5
         key = md5
         if key in result:
             nbskip+=1
-            continue #   ICI AUSSI ON AURA UN SKIP                             TODO: Log an error ?
-        result[key]=row #                                                      TODO: X-ref avec rapport 1/2 parcours que les duplic sont pas permis
+            continue
+        result[key]=row
         nb-=1
         if nb<=0:break
-    return result #                                                            TODO: A list or a dictionary ?
+    return result
 
 # Quelques tests ...
-if __name__=="__main__":                                                     # TODO: Est-ce que ca marche toujours ?
+if __name__=="__main__":
     from strategies import strategies
     
     import config

@@ -3,6 +3,9 @@ document.getElementById('start_date').valueAsDate = new Date("1995-06-16");
 
 const form = document.getElementById('paramForm');
 const resultPanel = document.getElementById('resultPanel');
+const statPanel =  document.getElementById('statPanel');
+const topBottom =  document.getElementById('topBottom');
+
 
 form.addEventListener('submit', async (e) => {
     e.preventDefault(); // Empêche le rechargement brutal de la page
@@ -34,25 +37,46 @@ form.addEventListener('submit', async (e) => {
         const jsonResult = await response.json();
 
         // 3. Génération dynamique du contenu HTML (H4 et UL) "resultPanel" est l'ID html du template ##RESPO##
-        resultPanel.innerHTML = "<h2>Résultats du traitement</h2>";   // TODO: Revoir. pas obligatoire.
-        
+        resultPanel.innerHTML = "";
+        statPanel.innerHTML="";
+        topBottom.innerHTML = "<p>La liste de tous les mot selectionnés par ordre décroissant de quantité:</p>";
+
         // Parcourt les clés du dictionnaire JSON (ex: "Statistiques globales", etc.)  
         // Cle `sectionTitle`, liste: `items`
         for (const [sectionTitle, items] of Object.entries(jsonResult)) {              
-            // Crée le titre de section H4
-            const h4 = document.createElement('h4');
-            h4.textContent = sectionTitle;
-            resultPanel.appendChild(h4);
+            // Crée le titre de section H2
+            const h2 = document.createElement('h2');
+            h2.textContent = sectionTitle;
+            if (sectionTitle == 'Statistiques')
+                statPanel.appendChild(h2);
+            else if (sectionTitle == 'Palmarès')
+                topBottom.appendChild(h2);
+            else
+                resultPanel.appendChild(h2);
 
             // Crée la liste UL
             const ul = document.createElement('ul');
             items.forEach(item => {                       // Notre liste
                 const li = document.createElement('li');
-                li.textContent = item;
+                const my_arr = item.split("::");
+                if (my_arr.length==2)
+                    li.innerHTML = '<b>'+my_arr[0]+'</b>:&nbsp;&nbsp;<i>'+my_arr[1]+'</i>';
+                else
+                    li.textContent = item;
                 ul.appendChild(li);
             });
-            resultPanel.appendChild(ul);
+            if (sectionTitle == 'Statistiques') {
+                statPanel.appendChild(ul);
+            }
+            else if (sectionTitle == 'Palmarès')
+                topBottom.appendChild(ul);
+            else
+                resultPanel.appendChild(ul);
         }
+        const imageUrl = `/static/errmap.png?t=${Date.now()}`;
+        statPanel.innerHTML+="<div><h3>Carte d'erreurs entre W x H et M à l'origine</h3></div>";
+        statPanel.innerHTML+=`<img class="errmap" src="${imageUrl}">`;
+
 
     } catch (error) {
         resultPanel.innerHTML = `<p style="color:red;">Erreur: ${error.message}</p>`;

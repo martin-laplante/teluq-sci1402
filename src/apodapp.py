@@ -13,6 +13,7 @@ import math
 # Tiers
 import numpy as np
 from sklearn.decomposition import NMF
+from PIL import Image
 
 # Local
 from apodcsv2json import apodcsv2json
@@ -30,10 +31,7 @@ case_sens = {
     True: lambda x: x.lower(),
 }
 
-                                                                                                                                                              # TODO: Placer dans un fichier `strategies.py`
 
-
-                                                                               # TODO: Placer dans un fichier de traitement
 def ValuesToScores(lst):
     """Prends une liste de valeur, en fait la somme et donne une nouvelle liste dont les valeurs deviennent un rapport à cette somme.
        Si la somme est 100 et qu'on a un élément de la liste qui vaut 50 alors la liste résultante aura 0.5 à cette nouvelle position.
@@ -42,10 +40,11 @@ def ValuesToScores(lst):
        ValuesToScores([1,2,3,4])
        # [0.1, 0.2, 0.3, 0.4]
        ```"""
-    result = []
+    result = [0.0]*len(lst)
     _sum = sum(lst)
-    for itm in lst:
-        result.append(itm/_sum)
+    if _sum:
+        for i,itm in enumerate(lst):
+            result[i] = itm/_sum
     return result
 
 
@@ -134,6 +133,8 @@ class APOD_App(object):
         titles = []
         catego = {
         }
+        word_counter = {}
+        word_counts = []
 
         ## Construction de la liste d'étiquettes (tags)
         #
@@ -142,6 +143,17 @@ class APOD_App(object):
             for w,count in row.get('words',{}).items():
                 if w not in tags:
                     tags.append(w)
+                if w not in word_counter:
+                    word_counter[w]=0
+                word_counter[w]+=count
+
+        tmp = {}
+        for w,c in word_counter.items():
+            if c not in tmp:
+                tmp[c]=[]
+            tmp[c].append(w)
+        for c,w in tmp.items():
+            word_counts.append("%7d::%s"%(c,', '.join(sorted(w))))
 
         ## Construction de la matrice M
         #
@@ -168,29 +180,40 @@ class APOD_App(object):
         W_ = np.matrix(W).transpose()
 
         for i,h in enumerate(H):
-            arti = CreateTagListFromScores(ScoreSort(ValuesToScores(W_.tolist()[i])),titles,0.5,50)
-            catego['/'.join(CreateTagListFromScores(ScoreSort(ValuesToScores(h)),tags,0.5,50))]=arti
+            arti = CreateTagListFromScores(ScoreSort(ValuesToScores(W_.tolist()[i])),titles,0.85,25)
+            catego['/'.join(CreateTagListFromScores(ScoreSort(ValuesToScores(h)),tags,0.75,15))]=arti
 
         duration = time.time()-t0
         duration_per_elements = duration/(Mh*Mw)
-                                                                               # TODO: Revoir pertinence
+
         result = {
-            "Sommaire de l'opération" : [
-                "Date de départ demandée %s"%(start_date,),
-                "Date de départ obtenue  %s"%(list(apod_json_data.values())[0]['date_ymd'],),
-                "Position %d"%(pos,),
-                "Date d'arrivée %s"%(list(apod_json_data.values())[-1]['date_ymd'],),
-                "Stratégie utilisée: %s"%(strategy,),
-                "Longueur du 'apod_json_data': "+str(len(apod_json_data)),
-                "minuscules:     %s"%(flag_lowercase,),
-                "TF-IDF:    %s"%(flag_tf_idf,),
-                "M:  %d X %d (%d elements)"%(Mh, Mw, Mh * Mw,),
-                "Durée totale %0.6f seconds"%(duration,),
-                "Durée par element: %0.3f μS"%(1000000*duration_per_elements,)
+            "Palmarès":list(reversed(sorted(word_counts))),
+            "Statistiques" : [
+                "Date de départ demandée::%s"%(start_date,),
+                "Date de départ obtenue::%s"%(list(apod_json_data.values())[0]['date_ymd'],),
+                "Position dans les enregistrements::%d"%(pos,),
+                "Date d'arrivée::%s"%(list(apod_json_data.values())[-1]['date_ymd'],),
+                "Stratégie utilisée::%s"%(strategy,),
+                "Longueur du 'apod_json_data'::"+str(len(apod_json_data)),
+                "Option minuscules::%s"%(flag_lowercase,),
+                "Option TF-IDF::%s"%(flag_tf_idf,),
+                "Dimensions de M::%d X %d (%d elements)"%(Mh, Mw, Mh * Mw,),
+                "Durée totale::%0.6f secondes"%(duration,),
+                "Durée par element::%0.3f μS"%(1000000*duration_per_elements,)
             ]
         }
+        self.create_error_map(M, W, H)
         result.update(catego)
         return result
+
+    def create_error_map(self, M, W, H):
+        """Permet de sauvegarde une carte où chaque pixel est représentation du niveau d'erreur entre W et sa reconstruction."""
+        WH = np.dot(W, H)
+        M_err = np.abs(np.matrix(M) - WH)
+        maxm = M_err.max()
+        image_data = np.rint(255-(M_err / maxm) * 255).astype(np.uint8)
+        img = Image.fromarray(image_data, mode="L")
+        img.save(r"static\errmap.png", format="PNG", optimize=True, compress_level=9)
 
     def get_td_idf_M(self, M, tags):
         """Calcul du TF-IDF selon la demande."""

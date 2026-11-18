@@ -59,3 +59,9 @@ button:hover { opacity: 0.9; }
 h3, h4 { color: #333; margin-top: 20px; border-bottom: 2px solid #eeeff1; padding-bottom: 5px;}
 ul { padding-left: 20px; }
 li { margin-bottom: 5px; }
+
+.errmap {
+    border:1px solid red; 
+    padding:2px;
+    display: block;
+}
