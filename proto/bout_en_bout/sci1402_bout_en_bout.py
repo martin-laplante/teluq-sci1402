@@ -14,7 +14,7 @@ from sklearn.decomposition import NMF
 ###############################################################################
 ## Configuration
 ###############################################################################
-source_apod_csv_path = r'..\data\APOD\NASA APOD 1995-2026\nasa_apod_complete.csv'
+source_apod_csv_path = r'..\..\data\APOD\NASA APOD 1995-2026\nasa_apod_complete.csv'
 source_apod_csv_encoding = 'utf-8'
 
 ###############################################################################
